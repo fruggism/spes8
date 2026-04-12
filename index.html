@@ -564,102 +564,15 @@ const DB={
    STATE
 ════════════════════════════════════ */
 let receipts   = DB.get('receipts') || [];
-let pantry     = DB.get('pantry')   || [];   // {id, name, macro, cat, receiptId, itemIdx, barcode, imgUrl, brand, nutriscore, nova, nutriments, location, expiry, qty}
+let pantry     = DB.get('pantry')   || [];
 let tempItems  = [];
-let scanTarget = null; // {pantryId} — quale item della dispensa stiamo collegando
-let pendingOFF = null; // dati OFF trovati, in attesa di conferma aggiunta dispensa
-
-/* ════════════════════════════════════
-   SEED DATA (scontrini reali)
-════════════════════════════════════ */
-function seedIfEmpty(){
-  if(receipts.length) return;
-  receipts=[
-    {id:'r1',date:'2026-03-03',store:'Esselunga via Emilia Ovest',payment:'Misto',total:29.43,items:[
-      {id:'i_r1_0', name:'Polpa fine Esselunga 420g',      macro:'dispensa',       cat:'pomodori',         price:0.99, discount:0},
-      {id:'i_r1_1', name:'Gnocchi di patate 2×250g',       macro:'cereali',        cat:'pasta-gnocchi',    price:2.79, discount:0},
-      {id:'i_r1_2', name:'Pesto genovese s/aglio 190g',    macro:'dispensa',       cat:'sughi',            price:2.49, discount:0},
-      {id:'i_r1_3', name:'Pomodorino',                     macro:'frutta-verdura', cat:'pomodori',         price:3.28, discount:0},
-      {id:'i_r1_4', name:'Jocca 135g ×2',                  macro:'latticini',      cat:'budino',           price:2.78, discount:0},
-      {id:'i_r1_5', name:'Arancia rossa Esselunga',        macro:'frutta-verdura', cat:'agrumi',           price:2.39, discount:0},
-      {id:'i_r1_6', name:'Insalata Allegra natural',       macro:'frutta-verdura', cat:'insalata',         price:1.98, discount:0},
-      {id:'i_r1_7', name:'Bresaola Valtellina IGP',        macro:'salumi',         cat:'bresaola',         price:3.79, discount:0},
-      {id:'i_r1_8', name:'Milk Yogurt multifrutto',        macro:'latticini',      cat:'yogurt',           price:1.39, discount:0},
-      {id:'i_r1_9', name:'Yogurt greco vaniglia 0%',       macro:'latticini',      cat:'yogurt',           price:2.09, discount:0},
-      {id:'i_r1_10',name:'Yogurt greco limone 0%',         macro:'latticini',      cat:'yogurt',           price:2.09, discount:0},
-      {id:'i_r1_11',name:'Fragole 250g',                   macro:'frutta-verdura', cat:'fragole',          price:1.29, discount:0.86},
-      {id:'i_r1_12',name:'Zucchine',                       macro:'frutta-verdura', cat:'zucchine',         price:2.07, discount:0},
-    ]},
-    {id:'r2',date:'2026-03-10',store:'Esselunga via Emilia Ovest',payment:'Misto',total:70.75,items:[
-      {id:'i_r2_0', name:'Focaccia con pomodorini',        macro:'cereali',        cat:'pane-focaccia',    price:2.11, discount:0},
-      {id:'i_r2_1', name:'Yogurt greco pesca 0%',          macro:'latticini',      cat:'yogurt',           price:2.09, discount:0},
-      {id:'i_r2_2', name:'Yogurt greco vaniglia 0%',       macro:'latticini',      cat:'yogurt',           price:2.09, discount:0},
-      {id:'i_r2_3', name:'Pepsi Max 33cl ×2',              macro:'bevande',        cat:'bibite',           price:0.98, discount:0},
-      {id:'i_r2_4', name:'Arancia rossa Esselunga',        macro:'frutta-verdura', cat:'agrumi',           price:2.39, discount:0},
-      {id:'i_r2_5', name:'Mc Chouffe Scotch 75cl',         macro:'bevande',        cat:'birra-alcol',      price:5.29, discount:0},
-      {id:'i_r2_6', name:'Filetto salmone senza pelle',    macro:'carne-pesce',    cat:'pesce',            price:6.74, discount:0},
-      {id:'i_r2_7', name:'Prosciutto cotto',               macro:'salumi',         cat:'prosciutto',       price:2.99, discount:0},
-      {id:'i_r2_8', name:'Bresaola Valtellina IGP',        macro:'salumi',         cat:'bresaola',         price:3.79, discount:0},
-      {id:'i_r2_9', name:'Arrosto di tacchino',            macro:'salumi',         cat:'arrosto',          price:1.89, discount:0},
-      {id:'i_r2_10',name:'Alpro Mandorla s/z 1L',          macro:'bevande',        cat:'bev-vegetali',     price:1.95, discount:0},
-      {id:'i_r2_11',name:'Milk Kefir melograno lampone',   macro:'latticini',      cat:'kefir',            price:1.39, discount:0},
-      {id:'i_r2_12',name:'Jocca 135g ×2',                  macro:'latticini',      cat:'budino',           price:2.78, discount:0},
-      {id:'i_r2_13',name:'Stracciatella',                  macro:'latticini',      cat:'formaggio-fresco', price:2.99, discount:0},
-      {id:'i_r2_14',name:'Equilibrio Ricottine',           macro:'latticini',      cat:'formaggi',         price:1.35, discount:0},
-      {id:'i_r2_15',name:'Patate',                         macro:'frutta-verdura', cat:'patate',           price:3.06, discount:0},
-      {id:'i_r2_16',name:'Bacche di Goji',                 macro:'frutta-verdura', cat:'frutta-secca',     price:3.99, discount:0},
-      {id:'i_r2_17',name:'Cuori di porro',                 macro:'frutta-verdura', cat:'porro',            price:2.78, discount:0},
-      {id:'i_r2_18',name:'Avocado',                        macro:'frutta-verdura', cat:'avocado',          price:2.53, discount:0},
-      {id:'i_r2_19',name:'Noci sgusciate',                 macro:'frutta-verdura', cat:'frutta-secca',     price:3.19, discount:0},
-      {id:'i_r2_20',name:'Mandorle sgusciate',             macro:'frutta-verdura', cat:'frutta-secca',     price:4.19, discount:0},
-      {id:'i_r2_21',name:'Piadina integrale',              macro:'cereali',        cat:'piadina',          price:2.09, discount:1.40},
-      {id:'i_r2_22',name:'Banane',                         macro:'frutta-verdura', cat:'banane',           price:0.84, discount:0},
-      {id:'i_r2_23',name:'Spinaci novelli 125g',           macro:'frutta-verdura', cat:'spinaci',          price:1.78, discount:0},
-      {id:'i_r2_24',name:'Misticanza Bio ×2',              macro:'frutta-verdura', cat:'insalata',         price:2.48, discount:1.08},
-      {id:'i_r2_25',name:'Fragole 500g',                   macro:'frutta-verdura', cat:'fragole',          price:2.98, discount:0},
-    ]},
-    {id:'r3',date:'2026-03-12',store:'Esselunga via Emilia Ovest',payment:'Carta di credito',total:5.25,items:[
-      {id:'i_r3_0',name:'Cioccolato Top Madagascar',       macro:'dolci-snack',    cat:'cioccolato',       price:2.29, discount:0},
-      {id:'i_r3_1',name:'Chips Lime & Pepe',               macro:'dolci-snack',    cat:'patatine',         price:0.79, discount:0},
-      {id:'i_r3_2',name:'Filone di grano duro',            macro:'cereali',        cat:'pane',             price:2.17, discount:0},
-    ]},
-    {id:'r4',date:'2026-03-19',store:'Esselunga via Emilia Ovest',payment:'Carta di credito',total:13.04,items:[
-      {id:'i_r4_0',name:'Pane sfilatino morbido',          macro:'cereali',        cat:'pane',             price:0.70, discount:0},
-      {id:'i_r4_1',name:'Mortadella Favola',               macro:'salumi',         cat:'mortadella',       price:3.52, discount:0},
-      {id:'i_r4_2',name:'Focaccia con pomodorini',         macro:'cereali',        cat:'pane-focaccia',    price:2.00, discount:0},
-      {id:'i_r4_3',name:'Powerade Limone',                 macro:'bevande',        cat:'sport-drinks',     price:0.99, discount:0},
-      {id:'i_r4_4',name:'Acqua Uliveto 50cl',              macro:'bevande',        cat:'acqua',            price:0.30, discount:0},
-      {id:'i_r4_5',name:'Smart Emmental Fette',            macro:'latticini',      cat:'formaggi',         price:1.49, discount:0},
-      {id:'i_r4_6',name:'Focaccine',                       macro:'cereali',        cat:'pane-focaccia',    price:3.94, discount:0},
-    ]},
-  ];
-  DB.set('receipts',receipts);
-
-  // Popola dispensa con tutti gli item degli scontrini
-  pantry=[];
-  receipts.forEach(r=>{
-    r.items.forEach(it=>{
-      pantry.push({
-        id: 'p_'+it.id,
-        name: it.name, macro: it.macro, cat: it.cat,
-        receiptId: r.id, itemId: it.id,
-        date: r.date, store: r.store,
-        barcode:null, imgUrl:null, brand:null,
-        nutriscore:null, nova:null, nutriments:null,
-        location: guessLocation(it.macro),
-        expiry:null, qty:null,
-      });
-    });
-  });
-  DB.set('pantry',pantry);
-}
+let scanTarget = null;
+let pendingOFF = null;
 
 function guessLocation(macro){
   if(['latticini','carne-pesce','salumi','frutta-verdura'].includes(macro)) return 'frigo';
   return 'dispensa';
 }
-
-seedIfEmpty();
 
 /* ════════════════════════════════════
    HELPERS
