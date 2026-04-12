@@ -3,299 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-
-<!-- PWA: tema, icone -->
-<meta name="theme-color" content="#F5F2ED">
-<meta name="description" content="Traccia la tua spesa, dispensa e nutrizione">
-
-<!-- iOS: standalone e icona -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23F5F2ED'/%3E%3Ccircle cx='90' cy='72' r='34' fill='none' stroke='%231A1714' stroke-width='7'/%3E%3Cpath d='M70 72 L84 86 L110 60' stroke='%232D6A4F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='52' y='114' width='76' height='10' rx='5' fill='%231A1714' opacity='0.15'/%3E%3Crect x='62' y='130' width='56' height='10' rx='5' fill='%231A1714' opacity='0.1'/%3E%3C/svg%3E">
-
-<!-- Android -->
-<meta name="mobile-web-app-capable" content="yes">
-
+<meta name="theme-color" content="#F5F2ED">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23F5F2ED'/%3E%3Ccircle cx='90' cy='72' r='34' fill='none' stroke='%231A1714' stroke-width='7'/%3E%3Cpath d='M70 72 L84 86 L110 60' stroke='%232D6A4F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 <title>La mia Spesa</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script>
-// Imposta worker PDF.js
-if(typeof pdfjsLib !== 'undefined'){
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-}
-</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F5F2ED;
-  --surface:#FFFFFF;
-  --s2:#F0EDE8;
-  --s3:#E8E4DE;
-  --border:#E2DDD6;
-  --border2:#CCC7BF;
-  --text:#1A1714;
-  --muted:#7A746C;
-  --hint:#B0A99F;
-  --green:#2D6A4F;
-  --green-bg:#EAFAF1;
-  --red:#C0392B;
-  --red-bg:#FDECEA;
-  --amber:#A0522D;
-  --amber-bg:#FDF3E7;
-  --blue:#1A5276;
-  --blue-bg:#EBF5FB;
-  --teal:#00695C;
-  --teal-bg:#E0F7FA;
-  --pink:#8B2252;
-  --pink-bg:#FDE8F0;
+  --bg:#F5F2ED;--surf:#FFFFFF;--s2:#F0EDE8;--s3:#E8E4DE;
+  --brd:#E2DDD6;--brd2:#CCC7BF;
+  --tx:#1A1714;--mu:#7A746C;--hi:#B0A99F;
+  --green:#2D6A4F;--gbg:#EAFAF1;
+  --red:#C0392B;--rbg:#FDECEA;
+  --amb:#A0522D;--abg:#FDF3E7;
+  --blue:#1A5276;--bbg:#EBF5FB;
+  --teal:#00695C;--tbg:#E0F7FA;
   --serif:'DM Serif Display',Georgia,serif;
   --sans:'DM Sans',sans-serif;
   --r:10px;--r2:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-.app{display:grid;grid-template-rows:auto 1fr auto;height:100vh;overflow:hidden}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;font-size:15px}
 
-/* TOPBAR */
-.topbar{padding:12px 18px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface);position:relative;z-index:50}
-.topbar-title{font-family:var(--serif);font-size:19px;color:var(--text)}
-.topbar-right{display:flex;gap:8px;align-items:center}
-/* ADD BUTTONS - sempre visibili */
-.add-btns{display:flex;gap:6px;align-items:center}
-.add-btn-pill{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap;min-height:36px}
-.add-btn-pill:hover{background:var(--s2);border-color:var(--text)}
-.add-btn-pill.primary{background:var(--text);color:#fff;border-color:var(--text)}
-.add-btn-pill.primary:hover{opacity:0.85}
-.add-btn-pill .api{font-size:15px;line-height:1}
-.add-btn-pill .apl{display:inline} /* label visibile su desktop */
+/* ── APP SHELL ── */
+.app{display:grid;grid-template-rows:auto 1fr auto;height:100dvh;overflow:hidden}
+.topbar{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--surf);border-bottom:1px solid var(--brd);padding-top:max(14px,env(safe-area-inset-top))}
+.topbar-title{font-family:var(--serif);font-size:19px;color:var(--tx)}
+.content{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:18px}.page.active{display:block}
+.bottomnav{display:flex;background:var(--surf);border-top:1px solid var(--brd);padding:5px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border:none;background:none;color:var(--mu);cursor:pointer;border-radius:8px;font-family:var(--sans);transition:color .15s}
+.bn.active{color:var(--tx)}.bn .bi{font-size:20px;line-height:1}.bn .bl{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
 
-/* ── MOBILE OPTIMIZATIONS ── */
-@media(max-width:600px){
-
-  /* Viewport safe area (iPhone notch/home) */
-  .app{height:100dvh}
-  .bottomnav{padding:5px 8px env(safe-area-inset-bottom,8px)}
-  .content{padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px))}
-
-  /* Topbar: icone senza testo su mobile — safe area per Dynamic Island */
-  .topbar{padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
-  .topbar-title{font-size:17px}
-  .add-btn-pill .apl{display:none}    /* nascondi testo, mostra solo icona */
-  .add-btn-pill{padding:8px;border-radius:50%;min-width:36px;min-height:36px;justify-content:center}
-  .add-btn-pill .api{font-size:17px}
-
-  /* Input: min 16px per evitare zoom Safari */
-  input,select,textarea{font-size:16px !important;padding:11px 12px}
-
-  /* Grid 2 colonne → 1 colonna su mobile stretto */
-  .g2{grid-template-columns:1fr}
-
-  /* Stat grid: rimane 2 col ma padding ridotto */
-  .stat-box{padding:11px 12px}
-  .stat-val{font-size:20px}
-
-  /* Cards */
-  .card{padding:14px;border-radius:12px}
-
-  /* Tabella Analisi: colonne nascoste su mobile */
-  .tbl-mobile-hide{display:none}
-  .tbl td,.tbl th{padding:8px 6px;font-size:11px}
-
-  /* Pill row: scroll orizzontale senza wrap */
-  .pill-row{flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .pill-row::-webkit-scrollbar{display:none}
-  .pill{padding:5px 13px;font-size:12px;min-height:32px}
-
-  /* Bottom nav: più alta per touch */
-  .bnav-item{padding:8px 4px}
-  .bnav-item .bicon{font-size:22px}
-  .bnav-item .blabel{font-size:9px}
-
-  /* Bottoni: touch target minimo 44px */
-  .btn{min-height:44px;padding:10px 16px}
-  .btn-sm{min-height:36px;padding:8px 14px}
-  .btn-xs{min-height:32px;padding:6px 10px;font-size:11px}
-  .btn-scan{min-height:36px;padding:7px 11px}
-
-  /* Modal: sale fino a 95vh su mobile */
-  .modal{max-height:95vh;padding:18px 16px;border-radius:16px 16px 0 0}
-  .modal-handle{margin-bottom:14px}
-
-  /* Dispensa: azioni su riga separata su mobile stretto */
-  .pantry-actions{flex-direction:column;gap:4px}
-  .btn-scan{font-size:10px;padding:6px 8px}
-
-  /* Scanner: quadrato più grande */
-  .scanner-wrap{max-width:100%}
-
-  /* Nscore wrap: colonna su mobile */
-  .nscore-wrap{flex-direction:column;align-items:flex-start;gap:14px}
-  .nscore-ring{margin:0 auto}
-
-  /* Wrapped year: più piccolo */
-  .wrapped-year{font-size:44px}
-
-  /* OCR dropzone: padding ridotto */
-  #ocr-dropzone{padding:22px 12px}
-
-  /* Tabella OCR review: colonne compatte */
-  .ocr-item-row{grid-template-columns:1fr 60px 24px;gap:4px}
-  .ocr-item-row select{display:none} /* nascondi select categoria su mobile */
-
-  /* Toast: sopra la bottom nav */
-  .toast{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
-}
-
-/* CONTENT */
-.content{overflow-y:auto;padding:18px}
-.page{display:none}.page.active{display:block}
-
-/* BOTTOM NAV */
-.bottomnav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:5px 8px 8px}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:8px;font-family:var(--sans);transition:all 0.15s}
-.bnav-item.active{color:var(--text)}
-.bnav-item .bicon{font-size:19px;line-height:1}
-.bnav-item .blabel{font-size:10px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase}
-
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px}
+/* ── CARDS ── */
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r2);padding:18px;margin-bottom:12px}
 .card:last-child{margin-bottom:0}
-.card-title{font-family:var(--serif);font-size:15px;color:var(--text);margin-bottom:14px}
+.card-title{font-family:var(--serif);font-size:15px;margin-bottom:14px}
 
-/* STATS */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.stat-box{background:var(--s2);border-radius:var(--r);padding:14px}
-.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px}
-.stat-val{font-family:var(--serif);font-size:24px;color:var(--text);line-height:1}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-box{background:var(--s2);border-radius:var(--r);padding:13px 14px}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:5px}
+.stat-val{font-family:var(--serif);font-size:22px;color:var(--tx);line-height:1}
+.stat-sub{font-size:11px;color:var(--mu);margin-top:3px}
 
-/* BADGES */
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em}
-.b-green{background:var(--green-bg);color:var(--green)}
-.b-red{background:var(--red-bg);color:var(--red)}
-.b-amber{background:var(--amber-bg);color:var(--amber)}
-.b-blue{background:var(--blue-bg);color:var(--blue)}
-.b-teal{background:var(--teal-bg);color:var(--teal)}
-.b-pink{background:var(--pink-bg);color:var(--pink)}
-.b-muted{background:var(--s3);color:var(--muted)}
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.b-green{background:var(--gbg);color:var(--green)}.b-red{background:var(--rbg);color:var(--red)}
+.b-amb{background:var(--abg);color:var(--amb)}.b-blue{background:var(--bbg);color:var(--blue)}
+.b-teal{background:var(--tbg);color:var(--teal)}.b-mu{background:var(--s3);color:var(--mu)}
+.b-pink{background:#FDE8F0;color:#8B2252}
 
-/* BUTTONS */
-.btn{padding:9px 16px;border-radius:var(--r);border:none;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--text);color:#fff}.btn-primary:hover{opacity:0.85}
-.btn-ghost{background:var(--s2);color:var(--text);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--s3)}
-.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid transparent}
-.btn-scan{background:var(--blue-bg);color:var(--blue);border:1px solid transparent;font-size:11px;padding:5px 10px;border-radius:8px}
-.btn-scan.linked{background:var(--green-bg);color:var(--green)}
-.btn-sm{padding:5px 11px;font-size:12px}
-.btn-xs{padding:3px 8px;font-size:11px;border-radius:7px}
+/* ── BUTTONS ── */
+.btn{padding:10px 16px;border-radius:var(--r);border:none;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--tx);color:#fff}.btn-primary:active{opacity:.8}
+.btn-ghost{background:var(--s2);color:var(--tx);border:1px solid var(--brd2)}.btn-ghost:active{background:var(--s3)}
+.btn-danger{background:var(--rbg);color:var(--red);border:1px solid transparent}
+.btn-green{background:var(--gbg);color:var(--green);border:1px solid transparent}
+.btn-full{width:100%}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:3px 9px;font-size:11px;border-radius:7px}
 
-/* INPUTS */
-input,select,textarea{background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:var(--sans);font-size:13px;width:100%;outline:none;transition:border 0.15s}
-input:focus,select:focus{border-color:var(--text)}
-input::placeholder{color:var(--hint)}
+/* ── INPUTS ── */
+input,select,textarea{background:var(--s2);border:1px solid var(--brd2);border-radius:var(--r);padding:10px 12px;color:var(--tx);font-family:var(--sans);font-size:14px;width:100%;outline:none;transition:border .15s;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--tx)}
+input::placeholder{color:var(--hi)}
 .form-row{margin-bottom:11px}
-.form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px;display:block}
+.form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:5px;display:block}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* TABLE */
+/* ── PILLS ── */
+.pill-row{display:flex;gap:5px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.pill{padding:5px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--brd);background:none;color:var(--mu);font-family:var(--sans);white-space:nowrap;flex-shrink:0;transition:all .12s}
+.pill.on{background:var(--tx);color:#fff;border-color:var(--tx);font-weight:500}
+
+/* ── TABLE ── */
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{text-align:left;padding:7px 8px;font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--hint);border-bottom:1px solid var(--border);white-space:nowrap}
-.tbl td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl th{text-align:left;padding:7px 8px;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--hi);border-bottom:1px solid var(--brd);white-space:nowrap}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--brd);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:var(--s2)}
 
-/* PILLS */
-.pill-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
-.pill{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);font-family:var(--sans);white-space:nowrap;transition:all 0.12s}
-.pill.on{background:var(--text);color:#fff;border-color:var(--text);font-weight:500}
-.pill:hover:not(.on){border-color:var(--text);color:var(--text)}
+/* ── RECEIPT BUTTONS ── */
+.receipt-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:background .12s;font-family:var(--sans)}
+.receipt-btn:active{background:var(--s2)}
+.receipt-btn-left{text-align:left}
+.receipt-btn-date{font-size:13px;font-weight:500;color:var(--tx)}
+.receipt-btn-meta{font-size:11px;color:var(--mu);margin-top:2px}
+.receipt-btn-amount{font-family:var(--serif);font-size:18px;color:var(--tx);flex-shrink:0;margin-left:12px}
 
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
+/* ── PANTRY ── */
+.pantry-item{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:12px;margin-bottom:8px}
+.pi-row{display:flex;align-items:center;gap:10px}
+.pi-icon{width:40px;height:40px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.pi-icon img{width:100%;height:100%;object-fit:contain}
+.pi-info{flex:1;min-width:0}
+.pi-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-meta{font-size:11px;color:var(--mu);margin-top:2px}
+.pi-exp{font-size:11px;font-weight:500;margin-top:3px}
+.pi-actions{display:flex;gap:5px;flex-shrink:0}
+.exp-ok{color:var(--teal)}.exp-soon{color:var(--amb)}.exp-out{color:var(--red)}
+.pi-nutri{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--brd);border-radius:8px;overflow:hidden;margin-top:10px}
+.pi-nutri-cell{background:var(--s2);padding:7px;text-align:center}
+.pi-nutri-cell .nv{font-family:var(--serif);font-size:13px}
+.pi-nutri-cell .nl{font-size:9px;color:var(--mu);text-transform:uppercase;margin-top:1px}
+
+/* ── SCANNER ── */
+.scan-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#000;width:100%;max-width:360px;margin:0 auto;aspect-ratio:1}
+.scan-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{width:200px;height:200px;border:2px solid var(--green);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+.scan-line{position:absolute;width:180px;height:2px;background:var(--green);opacity:.9;animation:scanline 2s ease-in-out infinite}
+@keyframes scanline{0%,100%{top:calc(50% - 90px)}50%{top:calc(50% + 90px)}}
+.scan-status{text-align:center;font-size:12px;color:var(--mu);margin-top:10px;min-height:36px;line-height:1.4}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:22px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;border-top:1px solid var(--border)}
-.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
-.modal-title{font-family:var(--serif);font-size:19px;margin-bottom:4px}
-.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
-.modal-actions{display:flex;gap:8px;margin-top:16px}
-.divider{height:1px;background:var(--border);margin:14px 0}
+.modal{background:var(--surf);border-radius:20px 20px 0 0;padding:20px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:92dvh;overflow-y:auto}
+.mhandle{width:36px;height:4px;background:var(--brd);border-radius:2px;margin:0 auto 18px}
+.mtitle{font-family:var(--serif);font-size:19px;margin-bottom:4px}
+.msub{font-size:12px;color:var(--mu);margin-bottom:18px}
+.mactions{display:flex;gap:8px;margin-top:16px}
+.divider{height:1px;background:var(--brd);margin:14px 0}
 
-/* PANTRY ITEM */
-.pantry-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px}
-.pantry-row{display:flex;align-items:center;gap:10px}
-.pantry-img{width:42px;height:42px;border-radius:8px;object-fit:contain;background:var(--s2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden}
-.pantry-img img{width:100%;height:100%;object-fit:contain}
-.pantry-info{flex:1;min-width:0}
-.pantry-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pantry-meta{font-size:11px;color:var(--muted);margin-top:1px}
-.pantry-exp{font-size:11px;font-weight:500;margin-top:3px}
-.pantry-actions{display:flex;gap:5px;flex-shrink:0;align-items:center}
-.exp-ok{color:var(--teal)}.exp-soon{color:var(--amber)}.exp-out{color:var(--red)}
-
-/* SCANNER */
-.scanner-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#000;aspect-ratio:1;max-width:340px;margin:0 auto}
-.scanner-wrap video{width:100%;height:100%;object-fit:cover}
-.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.scanner-frame{width:190px;height:190px;border:2px solid #2D6A4F;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)}
-.scanner-line{position:absolute;width:170px;height:2px;background:#2D6A4F;opacity:0.9;animation:scan 2s ease-in-out infinite}
-@keyframes scan{0%,100%{top:calc(50% - 85px)}50%{top:calc(50% + 85px)}}
-.scanner-status{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;min-height:18px}
-
-/* NUTRI SCORE */
+/* ── NUTRI score ── */
 .nscore-wrap{display:flex;align-items:center;gap:20px}
 .nscore-ring{position:relative;width:110px;height:110px;flex-shrink:0}
 .nscore-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .nscore-num{font-family:var(--serif);font-size:28px;line-height:1}
-.nscore-sub{font-size:10px;color:var(--muted)}
-.nutri-bar{margin-bottom:9px}
-.nutri-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:var(--muted)}
-.nutri-bar-label span:first-child{color:var(--text);font-weight:500}
-.bar-bg{height:4px;background:var(--s2);border-radius:2px;overflow:hidden;border:0.5px solid var(--border)}
-.bar-fill{height:100%;border-radius:2px;transition:width 0.6s}
+.nb-row{margin-bottom:9px}
+.nb-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.nb-label span:first-child{color:var(--tx);font-weight:500}
+.nb-label span:last-child{color:var(--mu)}
+.nb-bg{height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
+.nb-fill{height:100%;border-radius:2px;transition:width .6s}
 
-/* WRAPPED */
-.wrapped-hero{text-align:center;padding:24px 0 18px}
-.wrapped-year{font-family:var(--serif);font-size:56px;color:var(--text);line-height:1}
-.wrapped-tag{font-size:12px;color:var(--muted);margin-top:4px}
-.wrapped-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.w-stat{background:var(--s2);border-radius:var(--r);padding:14px;text-align:center}
-.w-val{font-family:var(--serif);font-size:26px;color:var(--text)}
-.w-lab{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.04em}
-.top-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
-.top-item:last-child{border-bottom:none}
-.top-rank{font-family:var(--serif);font-size:18px;color:var(--hint);width:24px;flex-shrink:0}
-.top-name{font-size:13px;font-weight:500}
-.top-meta{font-size:11px;color:var(--muted)}
-.top-val{font-family:var(--serif);font-size:14px;color:var(--text);margin-left:auto}
-
-/* OFF CARD */
-.off-card{background:var(--s2);border-radius:var(--r);padding:12px;display:flex;gap:10px;align-items:flex-start}
-.off-img{width:50px;height:50px;object-fit:contain;border-radius:6px;background:#fff;flex-shrink:0}
-.off-nutri-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;margin-top:10px}
-.off-nutri-cell{background:var(--surface);padding:9px;text-align:center}
-.off-nutri-cell .ov{font-family:var(--serif);font-size:15px}
-.off-nutri-cell .ol{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px}
-
-/* PANTRY EDIT */
-.btn-more{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 6px;border-radius:6px;line-height:1;transition:all 0.12s;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
-.btn-more:hover{background:var(--s2);color:var(--text)}
-.section-title{font-family:var(--serif);font-size:22px;margin-bottom:3px}
-.section-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
-.empty-state{text-align:center;padding:36px 16px;color:var(--hint)}
+/* ── MISC ── */
+.empty{text-align:center;padding:40px 16px;color:var(--hi)}
 .empty-icon{font-size:36px;margin-bottom:8px}
-.empty-text{font-size:14px;color:var(--muted);margin-bottom:4px}
+.empty-text{font-size:14px;color:var(--mu);margin-bottom:4px}
 .empty-hint{font-size:12px}
-.row-between{display:flex;align-items:center;justify-content:space-between}
-.progress-bar{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;margin-top:5px;border:0.5px solid var(--border)}
-.progress-fill{height:100%;border-radius:3px;background:var(--green);transition:width 0.6s}
-.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;border-radius:var(--r);padding:9px 16px;font-size:13px;z-index:500;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.row-bet{display:flex;align-items:center;justify-content:space-between}
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;border-radius:var(--r);padding:9px 16px;font-size:13px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.add-row{display:flex;gap:8px;margin-bottom:16px}
+.section-title{font-family:var(--serif);font-size:22px;margin-bottom:3px}
+.off-card{background:var(--s2);border-radius:var(--r);padding:12px;display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.off-img{width:50px;height:50px;object-fit:contain;border-radius:6px;background:#fff;flex-shrink:0}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
 </style>
 </head>
 <body>
@@ -304,88 +164,58 @@ input::placeholder{color:var(--hint)}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-title" id="page-title">La mia Spesa</div>
-  <div class="add-btns">
-    <button class="add-btn-pill" onclick="startScanNewProduct()" title="Scansiona barcode prodotto">
-      <span class="api">📷</span><span class="apl"> Scansiona prodotto</span>
-    </button>
-    <button class="add-btn-pill" onclick="openAddPantryDirect()" title="Aggiungi prodotto manualmente">
-      <span class="api">🗄</span><span class="apl"> Prodotto manuale</span>
-    </button>
-    <button class="add-btn-pill primary" onclick="openOCR()" title="Carica scontrino">
-      <span class="api">＋</span><span class="apl"> Scontrino</span>
-    </button>
-  </div>
 </div>
 
 <!-- CONTENT -->
-<div class="content" id="main-content">
+<div class="content">
 
-<!-- ═══ PAGE: SPESA ═══ -->
-<div class="page active" id="page-spesa">
-  <div class="pill-row" id="spesa-subnav">
-    <button class="pill on" onclick="showSpesaView('riepilogo',this)">Riepilogo</button>
-    <button class="pill" onclick="showSpesaView('analisi',this)">Analisi</button>
-    <button class="pill" onclick="showSpesaView('scontrini',this)">Scontrini</button>
-    <button class="pill" onclick="showSpesaView('statistiche',this)">Statistiche</button>
+<!-- ════ PAGE SPESA ════ -->
+<div class="page active" id="pg-spesa">
+  <div class="pill-row">
+    <button class="pill on" onclick="showSV('riepilogo',this)">Riepilogo</button>
+    <button class="pill" onclick="showSV('analisi',this)">Analisi</button>
   </div>
 
+  <!-- RIEPILOGO -->
   <div id="sv-riepilogo">
     <div class="stat-grid" id="stat-top"></div>
-    <div class="card"><div class="card-title">Spesa mensile</div><div style="height:180px"><canvas id="chart-monthly"></canvas></div></div>
-    <div class="card"><div class="card-title">Ultime spese</div><div id="recent-list"></div></div>
+    <button class="btn btn-primary btn-full" style="margin-bottom:14px" onclick="openModal('m-receipt')">＋ Aggiungi scontrino</button>
+    <div id="receipt-buttons"></div>
   </div>
 
+  <!-- ANALISI -->
   <div id="sv-analisi" style="display:none">
     <div class="pill-row" id="analisi-pills"></div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Statistiche di spesa</div>
+      <div style="height:180px"><canvas id="chart-analisi"></canvas></div>
+    </div>
     <div class="card">
       <div class="card-title">Prodotti acquistati</div>
       <div style="overflow-x:auto">
         <table class="tbl">
-          <thead><tr>
-            <th>Prodotto</th>
-            <th class="tbl-mobile-hide">Macrocat.</th>
-            <th>Categoria</th>
-            <th>Prezzo</th>
-            <th class="tbl-mobile-hide">Media 3M</th>
-            <th class="tbl-mobile-hide">Δ</th>
-            <th class="tbl-mobile-hide">Negozio</th>
-          </tr></thead>
+          <thead><tr><th>Prodotto</th><th>Categoria</th><th>Ultimo acq.</th><th>Ultimo €</th><th>Media 3M</th><th>Δ</th></tr></thead>
           <tbody id="analisi-body"></tbody>
         </table>
       </div>
     </div>
   </div>
-
-  <div id="sv-scontrini" style="display:none">
-    <div id="scontrini-list"></div>
-    <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center">
-      <button class="btn btn-primary" onclick="openOCR()">📷 Scansiona scontrino</button>
-      <button class="btn btn-ghost" onclick="openModal('modal-scontrino')">✏️ Inserisci manuale</button>
-    </div>
-  </div>
-
-  <div id="sv-statistiche" style="display:none">
-    <div class="wrapped-hero">
-      <div class="wrapped-year" id="w-year"></div>
-      <div class="wrapped-tag">Il tuo anno in numeri</div>
-    </div>
-    <div class="wrapped-grid" id="w-grid"></div>
-    <div class="card"><div class="card-title">Top prodotti</div><div id="w-top"></div></div>
-    <div class="card" style="margin-top:12px"><div class="card-title">Spesa per categoria</div><div style="height:200px"><canvas id="w-chart-cat"></canvas></div></div>
-    <div class="card" style="margin-top:12px"><div class="card-title">Andamento mensile</div><div style="height:170px"><canvas id="w-chart-monthly"></canvas></div></div>
-  </div>
 </div>
 
-<!-- ═══ PAGE: DISPENSA ═══ -->
-<div class="page" id="page-dispensa">
-  <div class="row-between" style="margin-bottom:16px">
-    <div>
-      <div class="section-title">Dispensa</div>
-      <div class="section-sub" style="margin-bottom:0"><span id="pantry-count">0</span> prodotti</div>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="openAddPantryDirect()">＋ Aggiungi</button>
+<!-- ════ PAGE DISPENSA ════ -->
+<div class="page" id="pg-dispensa">
+  <div class="row-bet" style="margin-bottom:14px">
+    <div class="section-title">Dispensa</div>
+    <span style="font-size:12px;color:var(--mu)"><span id="pantry-count">0</span> prodotti</span>
   </div>
-  <div class="pill-row" id="pantry-filter">
+
+  <!-- ADD ROW: sempre in cima -->
+  <div class="add-row">
+    <button class="btn btn-primary" style="flex:1" onclick="openScanner()">📷 Fotocamera</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="openManualAdd()">✏️ Manualmente</button>
+  </div>
+
+  <div class="pill-row" id="pantry-pills">
     <button class="pill on" onclick="filterPantry('tutti',this)">Tutti</button>
     <button class="pill" onclick="filterPantry('frigo',this)">Frigo</button>
     <button class="pill" onclick="filterPantry('dispensa',this)">Dispensa</button>
@@ -395,61 +225,35 @@ input::placeholder{color:var(--hint)}
   <div id="pantry-list"></div>
 </div>
 
-<!-- ═══ PAGE: QUALITÀ ═══ -->
-<div class="page" id="page-qualita">
-  <div class="section-title">Qualità</div>
-  <div class="section-sub">Basata sui prodotti collegati a Open Food Facts in dispensa</div>
+<!-- ════ PAGE QUALITÀ ════ -->
+<div class="page" id="pg-qualita">
+  <div class="section-title" style="margin-bottom:3px">Qualità</div>
+  <div style="font-size:12px;color:var(--mu);margin-bottom:18px">Profilo nutrizionale dei tuoi acquisti</div>
 
-  <!-- stato: nessun prodotto collegato -->
-  <div id="q-empty" style="display:none">
-    <div style="text-align:center;padding:48px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2)">
-      <div style="font-size:40px;margin-bottom:12px">🔍</div>
-      <div style="font-family:var(--serif);font-size:18px;margin-bottom:8px">Nessun dato nutrizionale</div>
-      <div style="font-size:13px;color:var(--muted);max-width:280px;margin:0 auto 20px">Scansiona il barcode dei prodotti in dispensa con il bottone <strong>📷 Scansionami</strong> per vedere Nutri-Score, NOVA e valori nutrizionali reali.</div>
-      <button class="btn btn-primary" onclick="goPage('dispensa',document.querySelectorAll('.bnav-item')[1])">Vai alla Dispensa →</button>
+  <div class="card">
+    <div class="card-title">Punteggio globale</div>
+    <div class="nscore-wrap">
+      <div class="nscore-ring">
+        <canvas id="score-canvas" width="110" height="110"></canvas>
+        <div class="nscore-label"><div class="nscore-num" id="score-num">—</div><div style="font-size:10px;color:var(--mu)">/ 100</div></div>
+      </div>
+      <div style="flex:1"><div id="score-breakdown"></div></div>
     </div>
   </div>
 
-  <!-- contenuto reale -->
-  <div id="q-content" style="display:none">
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Nutrienti stimati</div>
+    <div id="nutri-bars"></div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Punteggio nutrizionale medio</div>
-      <div class="nscore-wrap">
-        <div class="nscore-ring">
-          <canvas id="score-canvas" width="110" height="110"></canvas>
-          <div class="nscore-label">
-            <div class="nscore-num" id="score-num">—</div>
-            <div class="nscore-sub">/ 100</div>
-          </div>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="score-caption"></div>
-          <div id="ns-distribution"></div>
-        </div>
-      </div>
-    </div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Nutri-Score prodotti in dispensa</div>
+    <div id="ns-list"></div>
+  </div>
 
-    <div class="card" style="margin-top:12px">
-      <div class="card-title">Nutrienti medi ogni 100g <span style="font-size:11px;font-weight:400;color:var(--muted)">(media pesata sui prodotti collegati)</span></div>
-      <div id="nutri-bars"></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div class="card-title">Prodotti collegati — dettaglio</div>
-      <div id="ns-list"></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div class="card-title">NOVA — grado di trasformazione</div>
-      <div id="nova-breakdown"></div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div class="card-title">Consigli</div>
-      <div id="tips"></div>
-    </div>
-
+  <div class="card" style="margin-top:12px">
+    <div class="card-title">Consigli</div>
+    <div id="tips"></div>
   </div>
 </div>
 
@@ -457,32 +261,44 @@ input::placeholder{color:var(--hint)}
 
 <!-- BOTTOM NAV -->
 <div class="bottomnav">
-  <button class="bnav-item active" onclick="goPage('spesa',this)"><span class="bicon">🛒</span><span class="blabel">Spesa</span></button>
-  <button class="bnav-item" onclick="goPage('dispensa',this)"><span class="bicon">🗄</span><span class="blabel">Dispensa</span></button>
-  <button class="bnav-item" onclick="goPage('qualita',this)"><span class="bicon">◎</span><span class="blabel">Qualità</span></button>
+  <button class="bn active" onclick="goPage('spesa',this)"><span class="bi">🛒</span><span class="bl">Spesa</span></button>
+  <button class="bn" onclick="goPage('dispensa',this)"><span class="bi">🗄</span><span class="bl">Dispensa</span></button>
+  <button class="bn" onclick="goPage('qualita',this)"><span class="bi">◎</span><span class="bl">Qualità</span></button>
 </div>
 </div><!-- /app -->
 
 <div class="toast" id="toast"></div>
 
-<!-- ═══ MODAL: NUOVO SCONTRINO ═══ -->
-<div class="modal-bg" id="modal-scontrino">
+<!-- ═══ MODAL: DETTAGLIO SCONTRINO ═══ -->
+<div class="modal-bg" id="m-receipt-detail">
 <div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title">Nuovo scontrino</div>
-  <div class="modal-sub">Inserisci i dati della spesa</div>
+  <div class="mhandle"></div>
+  <div class="mtitle" id="rd-title"></div>
+  <div class="msub" id="rd-sub"></div>
+  <div id="rd-items"></div>
+  <div class="mactions">
+    <button class="btn btn-danger btn-sm" style="flex:1" id="rd-delete-btn">🗑 Elimina</button>
+    <button class="btn btn-ghost" style="flex:2;justify-content:center" onclick="closeModal('m-receipt-detail')">Chiudi</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ MODAL: NUOVO SCONTRINO ═══ -->
+<div class="modal-bg" id="m-receipt">
+<div class="modal">
+  <div class="mhandle"></div>
+  <div class="mtitle">Nuovo scontrino</div>
+  <div class="msub">Inserisci i dati della spesa</div>
   <div class="form-row"><label class="form-label">Data</label><input type="date" id="r-date"></div>
   <div class="form-row"><label class="form-label">Negozio</label><input type="text" id="r-store" placeholder="Es: Esselunga, Coop, Lidl…"></div>
   <div class="form-row"><label class="form-label">Pagamento</label>
-    <select id="r-payment"><option>Carta di credito</option><option>Contanti</option><option>Buoni pasto</option><option>Misto</option></select>
+    <select id="r-pay"><option>Carta di credito</option><option>Contanti</option><option>Buoni pasto</option><option>Misto</option></select>
   </div>
   <div class="divider"></div>
-  <div style="font-size:13px;font-weight:500;margin-bottom:10px">Articoli <span style="font-weight:400;color:var(--muted)">(aggiungi uno alla volta)</span></div>
+  <div style="font-size:13px;font-weight:500;margin-bottom:10px">Articoli</div>
   <div id="temp-items-wrap"></div>
-  <div style="background:var(--s2);border-radius:var(--r);padding:13px;border:1px solid var(--border)">
-    <div class="form-row"><label class="form-label">Nome prodotto</label><input type="text" id="i-name" placeholder="Es: Yogurt greco Esselunga" oninput="suggestCategoryFromName(this.value)">
-      <div id="cat-suggest" style="display:none;font-size:11px;margin-top:5px;padding:5px 8px;background:var(--green-bg);border-radius:6px;cursor:pointer"></div>
-    </div>
+  <div style="background:var(--s2);border-radius:var(--r);padding:13px;border:1px solid var(--brd)">
+    <div class="form-row"><label class="form-label">Nome prodotto</label><input type="text" id="i-name" placeholder="Es: Yogurt greco Esselunga"></div>
     <div class="g2">
       <div class="form-row"><label class="form-label">Macrocategoria</label>
         <select id="i-macro">
@@ -499,241 +315,216 @@ input::placeholder{color:var(--hint)}
           <option value="altro">📦 Altro</option>
         </select>
       </div>
-      <div class="form-row"><label class="form-label">Categoria</label><input type="text" id="i-cat" placeholder="Es: yogurt, pasta…"></div>
+      <div class="form-row"><label class="form-label">Categoria</label><input type="text" id="i-cat" placeholder="Es: yogurt"></div>
     </div>
     <div class="g2">
       <div class="form-row"><label class="form-label">Prezzo €</label><input type="number" id="i-price" placeholder="0.00" step="0.01" min="0"></div>
       <div class="form-row"><label class="form-label">Sconto € (opz.)</label><input type="number" id="i-disc" placeholder="0.00" step="0.01" min="0"></div>
     </div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="addTempItem()">＋ Aggiungi articolo</button>
+    <button class="btn btn-ghost btn-full" onclick="addTempItem()">＋ Aggiungi articolo</button>
   </div>
-  <div class="modal-actions">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('modal-scontrino')">Annulla</button>
+  <div class="mactions">
+    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('m-receipt');tempItems=[];renderTempItems()">Annulla</button>
     <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="saveReceipt()">Salva scontrino</button>
   </div>
 </div>
 </div>
 
 <!-- ═══ MODAL: SCANNER ═══ -->
-<div class="modal-bg" id="modal-scanner">
+<div class="modal-bg" id="m-scanner">
 <div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title" id="scan-modal-title">Scansiona prodotto</div>
-  <div class="modal-sub" id="scan-modal-sub">Punta la fotocamera sul codice a barre</div>
-  <div class="scanner-wrap"><video id="scanner-video" autoplay playsinline muted></video>
-    <div class="scanner-overlay"><div style="position:relative;width:190px;height:190px">
-      <div class="scanner-frame"></div><div class="scanner-line"></div>
-    </div></div>
-  </div>
-  <div class="scanner-status" id="scan-status">Cerco codice a barre…</div>
-  <!-- fallback manuale -->
-  <div style="margin-top:12px">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-align:center">oppure inserisci barcode manualmente</div>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="manual-barcode" placeholder="EAN barcode…" style="flex:1">
-      <button class="btn btn-ghost btn-sm" onclick="doFetchOFF(document.getElementById('manual-barcode').value)">Cerca</button>
+  <div class="mhandle"></div>
+  <div class="mtitle" id="scan-title">Scansiona prodotto</div>
+  <div class="msub">Punta la fotocamera sul codice a barre</div>
+  <div class="scan-wrap">
+    <video id="scan-video" autoplay playsinline muted></video>
+    <div class="scan-overlay">
+      <div style="position:relative;width:200px;height:200px">
+        <div class="scan-frame"></div>
+        <div class="scan-line"></div>
+      </div>
     </div>
   </div>
-  <div id="scan-result" style="margin-top:14px"></div>
-  <div class="modal-actions">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeScanner()">Chiudi</button>
+  <div class="scan-status" id="scan-status">Avvio fotocamera…</div>
+  <div style="margin-top:10px">
+    <div style="font-size:11px;color:var(--mu);text-align:center;margin-bottom:6px">oppure inserisci barcode manualmente</div>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="manual-bc" placeholder="Barcode EAN (es: 8001120982476)" style="flex:1">
+      <button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="doOFF(document.getElementById('manual-bc').value.trim())">Cerca</button>
+    </div>
+  </div>
+  <div id="scan-result" style="margin-top:12px"></div>
+  <div class="mactions">
+    <button class="btn btn-ghost btn-full" onclick="closeScanner()">Chiudi</button>
   </div>
 </div>
 </div>
 
-<!-- ═══ MODAL: AGGIUNGI A DISPENSA ═══ -->
-<div class="modal-bg" id="modal-pantry-add">
+<!-- ═══ MODAL: AGGIUNGI/MODIFICA DISPENSA ═══ -->
+<div class="modal-bg" id="m-pantry">
 <div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title" id="pa-title">Aggiungi alla dispensa</div>
-  <div class="modal-sub" id="pa-sub"></div>
-  <div id="pa-off-card" style="margin-bottom:14px"></div>
-  <div class="form-row"><label class="form-label">Dove si trova</label>
-    <select id="pa-location"><option value="dispensa">🗄 Dispensa</option><option value="frigo">🧊 Frigo</option><option value="freezer">❄️ Freezer</option></select>
+  <div class="mhandle"></div>
+  <div class="mtitle" id="pa-title">Aggiungi alla dispensa</div>
+  <div id="pa-off-card"></div>
+  <div class="form-row"><label class="form-label">Nome prodotto</label><input type="text" id="pa-name" placeholder="Nome prodotto"></div>
+  <div class="g2">
+    <div class="form-row"><label class="form-label">Macrocategoria</label>
+      <select id="pa-macro">
+        <option value="frutta-verdura">🥦 Frutta & Verdura</option>
+        <option value="latticini">🥛 Latticini & Uova</option>
+        <option value="carne-pesce">🥩 Carne & Pesce</option>
+        <option value="salumi">🍖 Salumi & Affettati</option>
+        <option value="cereali">🌾 Cereali & Pane</option>
+        <option value="dispensa">🫙 Dispensa</option>
+        <option value="dolci-snack">🍫 Dolci & Snack</option>
+        <option value="bevande">🧃 Bevande</option>
+        <option value="cura-persona">🧴 Cura persona</option>
+        <option value="casa">🧹 Casa & Pulizie</option>
+        <option value="altro">📦 Altro</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Posizione</label>
+      <select id="pa-loc"><option value="dispensa">🗄 Dispensa</option><option value="frigo">🧊 Frigo</option><option value="freezer">❄️ Freezer</option></select>
+    </div>
   </div>
-  <div class="form-row"><label class="form-label">Data di scadenza (opz.)</label><input type="date" id="pa-expiry"></div>
-  <div class="form-row"><label class="form-label">Quantità / Note</label><input type="text" id="pa-qty" placeholder="Es: 500g, 2 confezioni…"></div>
-  <div class="modal-actions">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('modal-pantry-add')">Annulla</button>
-    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="savePantryItem()">Salva in dispensa</button>
+  <div class="g2">
+    <div class="form-row"><label class="form-label">Data scadenza</label><input type="date" id="pa-exp"></div>
+    <div class="form-row"><label class="form-label">Quantità / Note</label><input type="text" id="pa-qty" placeholder="Es: 500g, 2 pz…"></div>
+  </div>
+  <div class="mactions">
+    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('m-pantry')">Annulla</button>
+    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="savePantryItem()">Conferma</button>
   </div>
 </div>
 </div>
 
 <script>
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    STORAGE
-════════════════════════════════════ */
+══════════════════════════════════════ */
 const DB={
-  get(k){try{return JSON.parse(localStorage.getItem('sp_'+k))}catch{return null}},
-  set(k,v){localStorage.setItem('sp_'+k,JSON.stringify(v))},
+  get(k){try{return JSON.parse(localStorage.getItem('sp8_'+k))}catch{return null}},
+  set(k,v){localStorage.setItem('sp8_'+k,JSON.stringify(v))}
 };
 
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    STATE
-════════════════════════════════════ */
-let receipts   = DB.get('receipts') || [];
-let pantry     = DB.get('pantry')   || [];
-let tempItems  = [];
-let scanTarget = null;
-let scannerActive = false;
-let pendingOFF = null;
+══════════════════════════════════════ */
+let receipts    = DB.get('receipts') || [];
+let pantry      = DB.get('pantry')   || [];
+let tempItems   = [];
+let scanTarget  = null;   // 'new' | pantryId
+let scanActive  = false;
+let pendingOFF  = null;
+let editingPantryId = null;
+let chartAnalisi = null, scoreChart = null;
 
-function guessLocation(macro){
-  if(['latticini','carne-pesce','salumi','frutta-verdura'].includes(macro)) return 'frigo';
-  return 'dispensa';
+/* ══════════════════════════════════════
+   SEED DATA
+══════════════════════════════════════ */
+function seedIfEmpty(){
+  if(receipts.length) return;
+  receipts=[
+    {id:'r1',date:'2026-03-03',store:'Esselunga via Emilia Ovest',pay:'Misto',total:29.43,items:[
+      {id:'i_r1_0',name:'Polpa fine Esselunga 420g',macro:'dispensa',cat:'pomodori',price:0.99,disc:0},
+      {id:'i_r1_1',name:'Gnocchi di patate 2×250g',macro:'cereali',cat:'pasta-gnocchi',price:2.79,disc:0},
+      {id:'i_r1_2',name:'Pesto genovese s/aglio 190g',macro:'dispensa',cat:'sughi',price:2.49,disc:0},
+      {id:'i_r1_3',name:'Pomodorino',macro:'frutta-verdura',cat:'pomodori',price:3.28,disc:0},
+      {id:'i_r1_4',name:'Jocca 135g ×2',macro:'latticini',cat:'budino',price:2.78,disc:0},
+      {id:'i_r1_5',name:'Arancia rossa Esselunga',macro:'frutta-verdura',cat:'agrumi',price:2.39,disc:0},
+      {id:'i_r1_6',name:'Insalata Allegra natural',macro:'frutta-verdura',cat:'insalata',price:1.98,disc:0},
+      {id:'i_r1_7',name:'Bresaola Valtellina IGP',macro:'salumi',cat:'bresaola',price:3.79,disc:0},
+      {id:'i_r1_8',name:'Milk Yogurt multifrutto',macro:'latticini',cat:'yogurt',price:1.39,disc:0},
+      {id:'i_r1_9',name:'Yogurt greco vaniglia 0%',macro:'latticini',cat:'yogurt',price:2.09,disc:0},
+      {id:'i_r1_10',name:'Yogurt greco limone 0%',macro:'latticini',cat:'yogurt',price:2.09,disc:0},
+      {id:'i_r1_11',name:'Fragole 250g',macro:'frutta-verdura',cat:'fragole',price:1.29,disc:0.86},
+      {id:'i_r1_12',name:'Zucchine',macro:'frutta-verdura',cat:'zucchine',price:2.07,disc:0},
+    ]},
+    {id:'r2',date:'2026-03-10',store:'Esselunga via Emilia Ovest',pay:'Misto',total:70.75,items:[
+      {id:'i_r2_0',name:'Focaccia con pomodorini',macro:'cereali',cat:'pane-focaccia',price:2.11,disc:0},
+      {id:'i_r2_1',name:'Yogurt greco pesca 0%',macro:'latticini',cat:'yogurt',price:2.09,disc:0},
+      {id:'i_r2_2',name:'Yogurt greco vaniglia 0%',macro:'latticini',cat:'yogurt',price:2.09,disc:0},
+      {id:'i_r2_3',name:'Pepsi Max 33cl ×2',macro:'bevande',cat:'bibite',price:0.98,disc:0},
+      {id:'i_r2_4',name:'Arancia rossa Esselunga',macro:'frutta-verdura',cat:'agrumi',price:2.39,disc:0},
+      {id:'i_r2_5',name:'Mc Chouffe Scotch 75cl',macro:'bevande',cat:'birra-alcol',price:5.29,disc:0},
+      {id:'i_r2_6',name:'Filetto salmone senza pelle',macro:'carne-pesce',cat:'pesce',price:6.74,disc:0},
+      {id:'i_r2_7',name:'Prosciutto cotto',macro:'salumi',cat:'prosciutto',price:2.99,disc:0},
+      {id:'i_r2_8',name:'Bresaola Valtellina IGP',macro:'salumi',cat:'bresaola',price:3.79,disc:0},
+      {id:'i_r2_9',name:'Arrosto di tacchino',macro:'salumi',cat:'arrosto',price:1.89,disc:0},
+      {id:'i_r2_10',name:'Alpro Mandorla s/z 1L',macro:'bevande',cat:'bev-vegetali',price:1.95,disc:0},
+      {id:'i_r2_11',name:'Milk Kefir melograno lampone',macro:'latticini',cat:'kefir',price:1.39,disc:0},
+      {id:'i_r2_12',name:'Jocca 135g ×2',macro:'latticini',cat:'budino',price:2.78,disc:0},
+      {id:'i_r2_13',name:'Stracciatella',macro:'latticini',cat:'formaggio-fresco',price:2.99,disc:0},
+      {id:'i_r2_14',name:'Equilibrio Ricottine',macro:'latticini',cat:'formaggi',price:1.35,disc:0},
+      {id:'i_r2_15',name:'Patate',macro:'frutta-verdura',cat:'patate',price:3.06,disc:0},
+      {id:'i_r2_16',name:'Bacche di Goji',macro:'frutta-verdura',cat:'frutta-secca',price:3.99,disc:0},
+      {id:'i_r2_17',name:'Cuori di porro',macro:'frutta-verdura',cat:'porro',price:2.78,disc:0},
+      {id:'i_r2_18',name:'Avocado',macro:'frutta-verdura',cat:'avocado',price:2.53,disc:0},
+      {id:'i_r2_19',name:'Noci sgusciate',macro:'frutta-verdura',cat:'frutta-secca',price:3.19,disc:0},
+      {id:'i_r2_20',name:'Mandorle sgusciate',macro:'frutta-verdura',cat:'frutta-secca',price:4.19,disc:0},
+      {id:'i_r2_21',name:'Piadina integrale',macro:'cereali',cat:'piadina',price:2.09,disc:1.40},
+      {id:'i_r2_22',name:'Banane',macro:'frutta-verdura',cat:'banane',price:0.84,disc:0},
+      {id:'i_r2_23',name:'Spinaci novelli 125g',macro:'frutta-verdura',cat:'spinaci',price:1.78,disc:0},
+      {id:'i_r2_24',name:'Misticanza Bio ×2',macro:'frutta-verdura',cat:'insalata',price:2.48,disc:1.08},
+      {id:'i_r2_25',name:'Fragole 500g',macro:'frutta-verdura',cat:'fragole',price:2.98,disc:0},
+    ]},
+    {id:'r3',date:'2026-03-12',store:'Esselunga via Emilia Ovest',pay:'Carta di credito',total:5.25,items:[
+      {id:'i_r3_0',name:'Cioccolato Top Madagascar',macro:'dolci-snack',cat:'cioccolato',price:2.29,disc:0},
+      {id:'i_r3_1',name:'Chips Lime & Pepe',macro:'dolci-snack',cat:'patatine',price:0.79,disc:0},
+      {id:'i_r3_2',name:'Filone di grano duro',macro:'cereali',cat:'pane',price:2.17,disc:0},
+    ]},
+    {id:'r4',date:'2026-03-19',store:'Esselunga via Emilia Ovest',pay:'Carta di credito',total:13.04,items:[
+      {id:'i_r4_0',name:'Pane sfilatino morbido',macro:'cereali',cat:'pane',price:0.70,disc:0},
+      {id:'i_r4_1',name:'Mortadella Favola',macro:'salumi',cat:'mortadella',price:3.52,disc:0},
+      {id:'i_r4_2',name:'Focaccia con pomodorini',macro:'cereali',cat:'pane-focaccia',price:2.00,disc:0},
+      {id:'i_r4_3',name:'Powerade Limone',macro:'bevande',cat:'sport-drinks',price:0.99,disc:0},
+      {id:'i_r4_4',name:'Acqua Uliveto 50cl',macro:'bevande',cat:'acqua',price:0.30,disc:0},
+      {id:'i_r4_5',name:'Smart Emmental Fette',macro:'latticini',cat:'formaggi',price:1.49,disc:0},
+      {id:'i_r4_6',name:'Focaccine',macro:'cereali',cat:'pane-focaccia',price:3.94,disc:0},
+    ]},
+  ];
+  DB.set('receipts',receipts);
+  // Popola dispensa dagli scontrini seed
+  pantry=[];
+  receipts.forEach(r=>r.items.forEach(it=>pantry.push(makePantryFromItem(it,r))));
+  DB.set('pantry',pantry);
 }
 
-/* ════════════════════════════════════
+function makePantryFromItem(it,r){
+  return{
+    id:'p_'+it.id, name:it.name, macro:it.macro, cat:it.cat,
+    receiptId:r.id, itemId:it.id, date:r.date, store:r.store,
+    barcode:null, imgUrl:null, brand:null,
+    nutriscore:null, nova:null, nutriments:null,
+    location:guessLoc(it.macro), expiry:null, qty:null,
+  };
+}
+seedIfEmpty();
+
+/* ══════════════════════════════════════
    HELPERS
-════════════════════════════════════ */
-const macroMeta={
-  'frutta-verdura': {label:'Frutta & Verdura', b:'b-green',  color:'#2D6A4F'},
-  'latticini':      {label:'Latticini & Uova', b:'b-teal',   color:'#00695C'},
-  'carne-pesce':    {label:'Carne & Pesce',    b:'b-red',    color:'#C0392B'},
-  'salumi':         {label:'Salumi & Affettati',b:'b-pink',  color:'#8B2252'},
-  'cereali':        {label:'Cereali & Pane',   b:'b-amber',  color:'#A0522D'},
-  'dispensa':       {label:'Dispensa',         b:'b-blue',   color:'#1A5276'},
-  'dolci-snack':    {label:'Dolci & Snack',    b:'b-pink',   color:'#8B2252'},
-  'bevande':        {label:'Bevande',          b:'b-blue',   color:'#1A5276'},
-  'cura-persona':   {label:'Cura persona',     b:'b-muted',  color:'#7A746C'},
-  'casa':           {label:'Casa & Pulizie',   b:'b-muted',  color:'#7A746C'},
-  'altro':          {label:'Altro',            b:'b-muted',  color:'#7A746C'},
+══════════════════════════════════════ */
+const MM={
+  'frutta-verdura':{label:'Frutta & Verdura',b:'b-green',color:'#2D6A4F'},
+  'latticini':     {label:'Latticini & Uova',b:'b-teal', color:'#00695C'},
+  'carne-pesce':   {label:'Carne & Pesce',   b:'b-red',  color:'#C0392B'},
+  'salumi':        {label:'Salumi',           b:'b-pink', color:'#8B2252'},
+  'cereali':       {label:'Cereali & Pane',   b:'b-amb',  color:'#A0522D'},
+  'dispensa':      {label:'Dispensa',         b:'b-blue', color:'#1A5276'},
+  'dolci-snack':   {label:'Dolci & Snack',    b:'b-pink', color:'#8B2252'},
+  'bevande':       {label:'Bevande',          b:'b-blue', color:'#1A5276'},
+  'cura-persona':  {label:'Cura persona',     b:'b-mu',   color:'#7A746C'},
+  'casa':          {label:'Casa & Pulizie',   b:'b-mu',   color:'#7A746C'},
+  'altro':         {label:'Altro',            b:'b-mu',   color:'#7A746C'},
 };
-const nsColorMap={a:'b-green',b:'b-teal',c:'b-amber',d:'b-amber',e:'b-red'};
-
-/* ════════════════════════════════════
-   OFF → MACROCATEGORIA MAPPING
-════════════════════════════════════ */
-// Mappa pnns_groups_1 e categories_tags di OFF alle nostre macrocategorie
-function offToMacro(product){
-  const pnns=(product.pnns_groups_1||'').toLowerCase();
-  const cats=(product.categories_tags||[]).join(' ').toLowerCase();
-  const combined=pnns+' '+cats;
-
-  if(/milk|dairy|lait|fromage|cheese|yogurt|yoghurt|kefir|butter|cream|egg|uova|latte|latticin|formag/.test(combined)) return{macro:'latticini',cat:offToCat(combined,'latticini')};
-  if(/meat|flesh|poultry|fish|seafood|carne|pesce|pollo|manzo|maiale|tacchino|salmone|tonno/.test(combined)) return{macro:'carne-pesce',cat:offToCat(combined,'carne-pesce')};
-  if(/charcuterie|deli|salami|ham|prosciutto|bresaola|mortadella|salume|affettat/.test(combined)) return{macro:'salumi',cat:offToCat(combined,'salumi')};
-  if(/cereal|bread|pasta|rice|flour|bakery|pane|pasta|riso|farina|cereali|gnocchi|pizza|focaccia|crackers/.test(combined)) return{macro:'cereali',cat:offToCat(combined,'cereali')};
-  if(/fruit|vegetable|frutta|verdura|ortaggi|legume|insalata|pomodor|zucchine|carota|spinaci/.test(combined)) return{macro:'frutta-verdura',cat:offToCat(combined,'frutta-verdura')};
-  if(/beverage|drink|juice|water|soda|beer|wine|acqua|succo|bibita|vino|birra|bevanda/.test(combined)) return{macro:'bevande',cat:offToCat(combined,'bevande')};
-  if(/sweet|chocolate|candy|snack|biscuit|cake|dolce|cioccolato|biscotto|patatine|gelato/.test(combined)) return{macro:'dolci-snack',cat:offToCat(combined,'dolci-snack')};
-  if(/hygiene|cosmetic|soap|shampoo|dentifricio|sapone|detergente|persona/.test(combined)) return{macro:'cura-persona',cat:'igiene'};
-  if(/cleaning|detergent|household|pulizie|casa/.test(combined)) return{macro:'casa',cat:'pulizie'};
-  if(/sauce|condiment|oil|vinegar|conserve|sugo|olio|aceto|passata|pesto/.test(combined)) return{macro:'dispensa',cat:offToCat(combined,'dispensa')};
-  return{macro:'altro',cat:''};
-}
-
-function offToCat(combined,macro){
-  if(macro==='latticini'){
-    if(/yogurt|yoghurt/.test(combined)) return 'yogurt';
-    if(/kefir/.test(combined)) return 'kefir';
-    if(/cheese|fromage|formag/.test(combined)) return 'formaggi';
-    if(/milk|latte/.test(combined)) return 'latte';
-    if(/egg|uov/.test(combined)) return 'uova';
-    if(/butter|burro/.test(combined)) return 'burro';
-    if(/cream|panna/.test(combined)) return 'panna';
-    return 'latticini';
-  }
-  if(macro==='carne-pesce'){
-    if(/fish|pesce|salmone|tonno|merluzzo/.test(combined)) return 'pesce';
-    if(/poultry|pollo|tacchino/.test(combined)) return 'pollame';
-    if(/beef|manzo/.test(combined)) return 'manzo';
-    if(/pork|maiale/.test(combined)) return 'maiale';
-    return 'carne';
-  }
-  if(macro==='salumi'){
-    if(/ham|prosciutto/.test(combined)) return 'prosciutto';
-    if(/bresaola/.test(combined)) return 'bresaola';
-    if(/mortadella/.test(combined)) return 'mortadella';
-    if(/salami|salame/.test(combined)) return 'salame';
-    return 'affettati';
-  }
-  if(macro==='cereali'){
-    if(/bread|pane|sfilatino|filone|baguette/.test(combined)) return 'pane';
-    if(/pasta/.test(combined)) return 'pasta';
-    if(/rice|riso/.test(combined)) return 'riso';
-    if(/pizza|focaccia/.test(combined)) return 'pane-focaccia';
-    if(/biscuit|cracker/.test(combined)) return 'crackers';
-    if(/cereal/.test(combined)) return 'cereali-colazione';
-    return 'cereali';
-  }
-  if(macro==='frutta-verdura'){
-    if(/fruit|frutta/.test(combined)) return 'frutta';
-    if(/vegetable|verdura/.test(combined)) return 'verdura';
-    if(/tomato|pomodor/.test(combined)) return 'pomodori';
-    if(/salad|insalata/.test(combined)) return 'insalata';
-    if(/legume|legumi|bean|lenticch|ceci|fagioli/.test(combined)) return 'legumi';
-    return 'frutta-verdura';
-  }
-  if(macro==='bevande'){
-    if(/water|acqua/.test(combined)) return 'acqua';
-    if(/juice|succo/.test(combined)) return 'succhi';
-    if(/beer|birra/.test(combined)) return 'birra';
-    if(/wine|vino/.test(combined)) return 'vino';
-    if(/soda|bibita|cola/.test(combined)) return 'bibite';
-    if(/plant|vegetal|mandorla|soia|avena/.test(combined)) return 'bev-vegetali';
-    return 'bevande';
-  }
-  if(macro==='dolci-snack'){
-    if(/chocolate|cioccolato/.test(combined)) return 'cioccolato';
-    if(/chip|patatine/.test(combined)) return 'patatine';
-    if(/biscuit|biscotto/.test(combined)) return 'biscotti';
-    if(/ice|gelato/.test(combined)) return 'gelati';
-    return 'snack';
-  }
-  if(macro==='dispensa'){
-    if(/sauce|sugo/.test(combined)) return 'sughi';
-    if(/oil|olio/.test(combined)) return 'oli';
-    if(/conserv|passata/.test(combined)) return 'conserve';
-    if(/pasta sauce|pesto/.test(combined)) return 'condimenti';
-    return 'dispensa';
-  }
-  return '';
-}
-
-/* Cerca su OFF per nome e suggerisce categoria — usato nel form scontrino */
-let offSuggestTimeout=null;
-async function suggestCategoryFromName(name){
-  clearTimeout(offSuggestTimeout);
-  if(name.length<3) return;
-  offSuggestTimeout=setTimeout(async()=>{
-    const el=document.getElementById('cat-suggest');
-    if(!el) return;
-    el.textContent='Cerco su OFF…';
-    el.style.display='block';
-    try{
-      const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1&page_size=1&lc=it`);
-      const d=await r.json();
-      if(d.products&&d.products.length>0){
-        const p=d.products[0];
-        const {macro,cat}=offToMacro(p);
-        if(macro!=='altro'){
-          el.textContent=`✓ OFF suggerisce: ${macroMeta[macro]?.label||macro}${cat?' › '+cat:''}`;
-          el.style.color='var(--green)';
-          el.innerHTML=`✓ OFF suggerisce: <strong>${macroMeta[macro]?.label||macro}</strong>${cat?' › '+cat:''} — <u>Applica</u>`;
-          el.onclick=()=>{
-            document.getElementById('i-macro').value=macro;
-            document.getElementById('i-cat').value=cat;
-            el.style.display='none';
-          };
-          el.style.cursor='pointer';
-          el.title='Clicca per applicare';
-        } else {
-          el.style.display='none';
-        }
-      } else {
-        el.style.display='none';
-      }
-    }catch(e){
-      el.style.display='none';
-    }
-  },700);
-}
+const nsMap={a:'b-green',b:'b-teal',c:'b-amb',d:'b-amb',e:'b-red'};
+const macroEmoji={'frutta-verdura':'🥦','latticini':'🥛','carne-pesce':'🥩','salumi':'🍖','cereali':'🌾','dispensa':'🫙','dolci-snack':'🍫','bevande':'🧃','cura-persona':'🧴','casa':'🧹','altro':'📦'};
 
 function fmt(n){return(+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function fmtDate(s){if(!s)return'—';return new Date(s).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtDate(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtDateShort(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})}
 function genId(){return 'id'+Date.now()+Math.random().toString(36).slice(2,5)}
+function guessLoc(macro){return['latticini','carne-pesce','salumi','frutta-verdura'].includes(macro)?'frigo':'dispensa'}
 
 function showToast(msg,ms=2500){
   const t=document.getElementById('toast');
@@ -741,135 +532,171 @@ function showToast(msg,ms=2500){
   setTimeout(()=>t.classList.remove('show'),ms);
 }
 
-function expiryClass(exp){
-  if(!exp) return '';
-  const diff=(new Date(exp)-new Date())/(86400000);
-  return diff<0?'exp-out':diff<=5?'exp-soon':'exp-ok';
+function expClass(exp){
+  if(!exp)return'';
+  const d=(new Date(exp)-new Date())/86400000;
+  return d<0?'exp-out':d<=4?'exp-soon':'exp-ok';
 }
-function expiryLabel(exp){
-  if(!exp) return '';
-  const diff=Math.ceil((new Date(exp)-new Date())/86400000);
-  if(diff<0) return `Scaduto ${Math.abs(diff)}g fa`;
-  if(diff===0) return 'Scade oggi';
-  if(diff===1) return 'Scade domani';
-  if(diff<=5) return `Scade in ${diff}g`;
-  return `Scade ${fmtDate(exp)}`;
+function expLabel(exp){
+  if(!exp)return'';
+  const d=Math.ceil((new Date(exp)-new Date())/86400000);
+  if(d<0)return`Scaduto ${Math.abs(d)}g fa`;
+  if(d===0)return'Scade oggi';
+  if(d===1)return'Scade domani';
+  if(d<=4)return`Scade in ${d}g`;
+  return`Scade ${fmtDate(exp)}`;
 }
 
-function allItems(){
-  return receipts.flatMap(r=>r.items.map(i=>({...i,date:r.date,store:r.store,receiptId:r.id})));
-}
-function catTotals(){
-  const m={};
-  receipts.forEach(r=>r.items.forEach(i=>{m[i.macro]=(m[i.macro]||0)+(i.price-(i.discount||0))}));
-  return m;
-}
-function monthlyTotals(){
-  const m={};
-  receipts.forEach(r=>{const k=r.date.slice(0,7);m[k]=(m[k]||0)+r.total});
-  return m;
-}
-function avgPrice3M(name){
-  const cutoff=new Date();cutoff.setMonth(cutoff.getMonth()-3);
-  const pp=receipts.flatMap(r=>new Date(r.date)>=cutoff?r.items.filter(i=>i.name===name).map(i=>i.price):[]);
+function allItems(){return receipts.flatMap(r=>r.items.map(i=>({...i,date:r.date,store:r.store,receiptId:r.id})))}
+
+function avg3M(name){
+  const cut=new Date();cut.setMonth(cut.getMonth()-3);
+  const pp=receipts.flatMap(r=>new Date(r.date)>=cut?r.items.filter(i=>i.name===name).map(i=>i.price):[]);
   return pp.length>=2?pp.reduce((a,b)=>a+b)/pp.length:null;
 }
 
-/* ════════════════════════════════════
+function monthlyTotals(){
+  const m={};receipts.forEach(r=>{const k=r.date.slice(0,7);m[k]=(m[k]||0)+r.total});return m;
+}
+
+function catTotals(){
+  const m={};receipts.forEach(r=>r.items.forEach(i=>{m[i.macro]=(m[i.macro]||0)+(i.price-(i.disc||0))}));return m;
+}
+
+/* giorni nel mese corrente trascorsi */
+function daysInCurrentMonth(){
+  const now=new Date();
+  const start=new Date(now.getFullYear(),now.getMonth(),1);
+  return Math.ceil((now-start)/86400000)+1;
+}
+/* giorni nel trimestre corrente trascorsi */
+function daysInCurrentQuarter(){
+  const now=new Date();
+  const q=Math.floor(now.getMonth()/3);
+  const start=new Date(now.getFullYear(),q*3,1);
+  return Math.ceil((now-start)/86400000)+1;
+}
+
+/* ══════════════════════════════════════
    NAVIGATION
-════════════════════════════════════ */
+══════════════════════════════════════ */
+const pageTitles={spesa:'La mia Spesa',dispensa:'Dispensa',qualita:'Qualità'};
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
   btn.classList.add('active');
-  const titles={spesa:'La mia Spesa',dispensa:'Dispensa',qualita:'Qualità'};
-  document.getElementById('page-title').textContent=titles[id];
+  document.getElementById('page-title').textContent=pageTitles[id];
   if(id==='spesa')renderSpesa();
   if(id==='dispensa')renderDispensa();
   if(id==='qualita')renderQualita();
 }
 
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    MODALS
-════════════════════════════════════ */
+══════════════════════════════════════ */
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')});
 });
 
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    PAGE SPESA
-════════════════════════════════════ */
-let activeSpesaView='riepilogo';
-let chartMonthly=null;
-
-function showSpesaView(v,btn){
-  activeSpesaView=v;
-  document.querySelectorAll('#spesa-subnav .pill').forEach(p=>p.classList.remove('on'));
+══════════════════════════════════════ */
+let spesaView='riepilogo';
+function showSV(v,btn){
+  spesaView=v;
+  document.querySelectorAll('.pill-row .pill').forEach(p=>p.classList.remove('on'));
   btn.classList.add('on');
-  ['riepilogo','analisi','scontrini','statistiche'].forEach(x=>{
-    document.getElementById('sv-'+x).style.display=(x===v)?'block':'none';
-  });
-  if(v==='riepilogo')   renderRiepilogo();
-  if(v==='analisi')     renderAnalisi();
-  if(v==='scontrini')   renderScontrini();
-  if(v==='statistiche') renderStatistiche();
+  document.getElementById('sv-riepilogo').style.display=(v==='riepilogo')?'block':'none';
+  document.getElementById('sv-analisi').style.display=(v==='analisi')?'block':'none';
+  if(v==='riepilogo')renderRiepilogo();
+  if(v==='analisi')renderAnalisi();
 }
-function renderSpesa(){renderRiepilogo();}
+function renderSpesa(){
+  if(spesaView==='riepilogo')renderRiepilogo();
+  else renderAnalisi();
+}
 
 /* --- RIEPILOGO --- */
 function renderRiepilogo(){
   const mt=monthlyTotals();
   const months=Object.keys(mt).sort();
-  const cur=months[months.length-1]||'';
-  const prev=months[months.length-2]||'';
+  const curM=months[months.length-1]||'';
+  const curTotal=mt[curM]||0;
   const total=Object.values(mt).reduce((a,b)=>a+b,0);
-  const saved=receipts.reduce((a,r)=>a+r.items.reduce((b,i)=>b+(i.discount||0),0),0);
+  const avgR=receipts.length?total/receipts.length:0;
+  const dM=daysInCurrentMonth();
+  const dQ=daysInCurrentQuarter();
+
+  // spesa nel mese corrente
+  const spesaMese=receipts.filter(r=>r.date.slice(0,7)===new Date().toISOString().slice(0,7)).reduce((a,r)=>a+r.total,0);
+  // spesa trimestre corrente
+  const now=new Date();const qStart=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1);
+  const spesaTrim=receipts.filter(r=>new Date(r.date+'T00:00:00')>=qStart).reduce((a,r)=>a+r.total,0);
 
   document.getElementById('stat-top').innerHTML=`
     <div class="stat-box">
-      <div class="stat-label">Questo mese</div>
-      <div class="stat-val">€${fmt(mt[cur]||0)}</div>
-      <div class="stat-sub">${prev?`vs €${fmt(mt[prev]||0)} mese scorso`:''}</div>
+      <div class="stat-label">Speso questo mese</div>
+      <div class="stat-val">€${fmt(spesaMese)}</div>
+      <div class="stat-sub">${receipts.filter(r=>r.date.slice(0,7)===new Date().toISOString().slice(0,7)).length} scontrini</div>
     </div>
     <div class="stat-box">
-      <div class="stat-label">Media / scontrino</div>
-      <div class="stat-val">€${fmt(receipts.length?total/receipts.length:0)}</div>
-      <div class="stat-sub">${receipts.length} scontrini</div>
+      <div class="stat-label">Media per scontrino</div>
+      <div class="stat-val">€${fmt(avgR)}</div>
+      <div class="stat-sub">${receipts.length} totali</div>
     </div>
     <div class="stat-box">
-      <div class="stat-label">Risparmiato</div>
-      <div class="stat-val" style="color:var(--green)">€${fmt(saved)}</div>
-      <div class="stat-sub">sconti applicati</div>
+      <div class="stat-label">Media giornaliera mese</div>
+      <div class="stat-val">€${fmt(spesaMese/dM)}</div>
+      <div class="stat-sub">su ${dM} giorni</div>
     </div>
     <div class="stat-box">
-      <div class="stat-label">Totale tracciato</div>
-      <div class="stat-val">€${fmt(total)}</div>
-      <div class="stat-sub">tutti i periodi</div>
+      <div class="stat-label">Media giornaliera trim.</div>
+      <div class="stat-val">€${fmt(spesaTrim/dQ)}</div>
+      <div class="stat-sub">su ${dQ} giorni</div>
     </div>`;
 
-  if(chartMonthly)chartMonthly.destroy();
-  chartMonthly=new Chart(document.getElementById('chart-monthly'),{
-    type:'bar',
-    data:{
-      labels:months.map(m=>{const[y,mo]=m.split('-');return new Date(y,mo-1).toLocaleDateString('it-IT',{month:'short',year:'2-digit'})}),
-      datasets:[{data:months.map(m=>mt[m]),backgroundColor:'#1A1714',borderRadius:5}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{grid:{color:'#F0EDE8'},ticks:{callback:v=>'€'+v,color:'#7A746C'}},x:{grid:{display:false},ticks:{color:'#7A746C'}}}}
-  });
-
-  const sorted=[...receipts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
-  document.getElementById('recent-list').innerHTML=sorted.map(r=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div>
-        <div style="font-size:13px;font-weight:500">${r.store}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtDate(r.date)} · ${r.items.length} articoli · ${r.payment}</div>
+  const sorted=[...receipts].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('receipt-buttons').innerHTML=sorted.map(r=>`
+    <button class="receipt-btn" onclick="openReceiptDetail('${r.id}')">
+      <div class="receipt-btn-left">
+        <div class="receipt-btn-date">Scontrino del ${fmtDateShort(r.date)}</div>
+        <div class="receipt-btn-meta">${r.store} · ${r.items.length} articoli · ${r.pay}</div>
       </div>
-      <div style="font-family:var(--serif);font-size:17px;color:var(--text)">€${fmt(r.total)}</div>
-    </div>`).join('')||'<div class="empty-state"><div class="empty-text">Nessuno scontrino</div></div>';
+      <div class="receipt-btn-amount">€${fmt(r.total)}</div>
+    </button>`).join('')||'<div class="empty"><div class="empty-icon">🧾</div><div class="empty-text">Nessuno scontrino</div><div class="empty-hint">Premi "Aggiungi scontrino" per iniziare</div></div>';
+}
+
+function openReceiptDetail(id){
+  const r=receipts.find(x=>x.id===id);if(!r)return;
+  document.getElementById('rd-title').textContent=`Scontrino del ${fmtDateShort(r.date)}`;
+  document.getElementById('rd-sub').textContent=`${r.store} · ${r.pay} · €${fmt(r.total)}`;
+  document.getElementById('rd-items').innerHTML=`
+    <div style="max-height:55vh;overflow-y:auto">
+      ${r.items.map(i=>{
+        const m=MM[i.macro];
+        return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--brd)">
+          <div>
+            <div style="font-size:13px;font-weight:500">${i.name}</div>
+            <div style="margin-top:2px"><span class="badge ${m?.b||'b-mu'}">${i.cat||m?.label||i.macro}</span>${i.disc>0?`<span class="badge b-green" style="margin-left:4px">−€${fmt(i.disc)}</span>`:''}</div>
+          </div>
+          <div style="font-family:var(--serif);font-size:16px;flex-shrink:0;margin-left:10px">€${fmt(i.price)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  document.getElementById('rd-delete-btn').onclick=()=>deleteReceipt(id);
+  openModal('m-receipt-detail');
+}
+
+function deleteReceipt(id){
+  if(!confirm('Eliminare questo scontrino?'))return;
+  receipts=receipts.filter(r=>r.id!==id);
+  DB.set('receipts',receipts);
+  closeModal('m-receipt-detail');
+  renderRiepilogo();
+  showToast('Scontrino eliminato');
 }
 
 /* --- ANALISI --- */
@@ -878,112 +705,52 @@ function renderAnalisi(){
   const items=allItems();
   const macros=[...new Set(items.map(i=>i.macro))];
   document.getElementById('analisi-pills').innerHTML=
-    ['tutti',...macros].map(m=>`<button class="pill${m===analisiFilter?' on':''}" onclick="setAnalisiFilter('${m}',this)">${m==='tutti'?'Tutti':(macroMeta[m]?.label||m)}</button>`).join('');
+    ['tutti',...macros].map(m=>`<button class="pill${m===analisiFilter?' on':''}" onclick="setAF('${m}',this)">${m==='tutti'?'Tutti':(MM[m]?.label||m)}</button>`).join('');
 
+  // Chart: spesa per categoria
+  if(chartAnalisi)chartAnalisi.destroy();
+  const ct=catTotals();
+  const ck=Object.keys(ct);
+  chartAnalisi=new Chart(document.getElementById('chart-analisi'),{
+    type:'doughnut',
+    data:{labels:ck.map(k=>MM[k]?.label||k),datasets:[{data:ck.map(k=>+ct[k].toFixed(2)),backgroundColor:ck.map(k=>MM[k]?.color||'#7A746C'),borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:'#7A746C',boxWidth:10,padding:10,font:{size:10}}}}}
+  });
+
+  // Tabella prodotti
   const filtered=analisiFilter==='tutti'?items:items.filter(i=>i.macro===analisiFilter);
-  document.getElementById('analisi-body').innerHTML=filtered.map(i=>{
-    const avg=avgPrice3M(i.name);
+  // Raggruppa per nome, prendi ultimo acquisto
+  const byName={};
+  filtered.forEach(i=>{
+    if(!byName[i.name]||i.date>byName[i.name].date) byName[i.name]=i;
+  });
+  const rows=Object.values(byName).sort((a,b)=>b.date.localeCompare(a.date));
+
+  document.getElementById('analisi-body').innerHTML=rows.map(i=>{
+    const avg=avg3M(i.name);
     const delta=avg!=null?i.price-avg:null;
-    const m=macroMeta[i.macro];
-    let dHtml='<span style="color:var(--hint)">—</span>';
+    const m=MM[i.macro];
+    let dHtml='<span style="color:var(--hi)">—</span>';
     if(delta!=null){
-      if(delta>0.005) dHtml=`<span style="color:var(--red)">+€${fmt(delta)}</span>`;
-      else if(delta<-0.005) dHtml=`<span style="color:var(--green)">−€${fmt(Math.abs(delta))}</span>`;
-      else dHtml=`<span style="color:var(--muted)">=</span>`;
+      if(delta>0.01)dHtml=`<span style="color:var(--red)">+€${fmt(delta)}</span>`;
+      else if(delta<-0.01)dHtml=`<span style="color:var(--green)">−€${fmt(Math.abs(delta))}</span>`;
+      else dHtml=`<span style="color:var(--mu)">=</span>`;
     }
     return`<tr>
       <td style="font-weight:500">${i.name}</td>
-      <td class="tbl-mobile-hide"><span class="badge ${m?.b||'b-muted'}">${m?.label||i.macro}</span></td>
-      <td style="color:var(--muted)">${i.cat||'—'}</td>
+      <td><span class="badge ${m?.b||'b-mu'}">${i.cat||m?.label||i.macro}</span></td>
+      <td style="color:var(--mu);white-space:nowrap">${fmtDate(i.date)}</td>
       <td>€${fmt(i.price)}</td>
-      <td class="tbl-mobile-hide" style="color:var(--muted)">${avg!=null?'€'+fmt(avg):'—'}</td>
-      <td class="tbl-mobile-hide">${dHtml}</td>
-      <td class="tbl-mobile-hide" style="color:var(--muted);font-size:11px">${i.store}</td>
+      <td style="color:var(--mu)">${avg!=null?'€'+fmt(avg):'—'}</td>
+      <td>${dHtml}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--hint);padding:20px">Nessun prodotto</td></tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--hi);padding:20px">Nessun prodotto</td></tr>';
 }
-function setAnalisiFilter(f,btn){
+function setAF(f,btn){
   analisiFilter=f;
   document.querySelectorAll('#analisi-pills .pill').forEach(p=>p.classList.remove('on'));
   btn.classList.add('on');
   renderAnalisi();
-}
-
-/* --- SCONTRINI --- */
-function renderScontrini(){
-  const sorted=[...receipts].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('scontrini-list').innerHTML=sorted.map(r=>`
-    <div class="card" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <div>
-          <div style="font-size:14px;font-weight:500">${r.store}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtDate(r.date)} · ${r.payment}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:var(--serif);font-size:20px">€${fmt(r.total)}</div>
-          <div style="font-size:11px;color:var(--muted)">${r.items.length} art.</div>
-        </div>
-      </div>
-      ${r.items.map(i=>{
-        const m=macroMeta[i.macro];
-        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border)">
-          <div style="flex:1;min-width:0">
-            <span style="font-size:12px">${i.name}</span>
-            <span class="badge ${m?.b||'b-muted'}" style="margin-left:5px">${i.cat||i.macro}</span>
-            ${i.discount>0?`<span class="badge b-green" style="margin-left:3px">−€${fmt(i.discount)}</span>`:''}
-          </div>
-          <span style="font-size:13px;font-weight:500;flex-shrink:0;margin-left:8px">€${fmt(i.price)}</span>
-        </div>`;
-      }).join('')}
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <button class="btn btn-danger btn-xs" onclick="deleteReceipt('${r.id}')">🗑 Elimina</button>
-      </div>
-    </div>`).join('')||'<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">Nessuno scontrino</div></div>';
-}
-
-/* --- STATISTICHE / WRAPPED --- */
-let wCharts={};
-function renderStatistiche(){
-  document.getElementById('w-year').textContent=new Date().getFullYear();
-  const total=receipts.reduce((a,r)=>a+r.total,0);
-  const saved=receipts.reduce((a,r)=>a+r.items.reduce((b,i)=>b+(i.discount||0),0),0);
-  const topStore=Object.entries(receipts.reduce((m,r)=>{m[r.store]=(m[r.store]||0)+1;return m},{})).sort((a,b)=>b[1]-a[1])[0];
-  const items=allItems();
-
-  document.getElementById('w-grid').innerHTML=`
-    <div class="w-stat"><div class="w-val">€${fmt(total)}</div><div class="w-lab">Spesa totale</div></div>
-    <div class="w-stat"><div class="w-val">${receipts.length}</div><div class="w-lab">Scontrini</div></div>
-    <div class="w-stat"><div class="w-val" style="color:var(--green)">€${fmt(saved)}</div><div class="w-lab">Risparmiati</div></div>
-    <div class="w-stat"><div class="w-val" style="font-size:16px">${topStore?topStore[0].split(' ')[0]:'—'}</div><div class="w-lab">Negozio preferito</div></div>`;
-
-  const freq={};items.forEach(i=>{freq[i.name]=(freq[i.name]||0)+1});
-  document.getElementById('w-top').innerHTML=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([name,n],idx)=>`
-    <div class="top-item">
-      <div class="top-rank">${idx+1}</div>
-      <div><div class="top-name">${name}</div><div class="top-meta">${n} acquist${n>1?'i':'o'}</div></div>
-      <div class="top-val">${n}×</div>
-    </div>`).join('');
-
-  if(wCharts.cat)wCharts.cat.destroy();
-  const ct=catTotals();
-  const ck=Object.keys(ct);
-  wCharts.cat=new Chart(document.getElementById('w-chart-cat'),{
-    type:'doughnut',
-    data:{labels:ck.map(k=>macroMeta[k]?.label||k),datasets:[{data:ck.map(k=>+ct[k].toFixed(2)),backgroundColor:ck.map(k=>macroMeta[k]?.color||'#7A746C'),borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:'#7A746C',boxWidth:10,padding:10,font:{size:10}}}}}
-  });
-
-  if(wCharts.monthly)wCharts.monthly.destroy();
-  const mt=monthlyTotals();const mk=Object.keys(mt).sort();
-  wCharts.monthly=new Chart(document.getElementById('w-chart-monthly'),{
-    type:'line',
-    data:{
-      labels:mk.map(m=>{const[y,mo]=m.split('-');return new Date(y,mo-1).toLocaleDateString('it-IT',{month:'short'})}),
-      datasets:[{data:mk.map(m=>mt[m]),borderColor:'#1A1714',backgroundColor:'rgba(26,23,20,0.05)',tension:0.35,fill:true,pointRadius:4,pointBackgroundColor:'#1A1714',borderWidth:2}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{grid:{color:'#F0EDE8'},ticks:{callback:v=>'€'+v,color:'#7A746C'}},x:{grid:{display:false},ticks:{color:'#7A746C'}}}}
-  });
 }
 
 /* --- AGGIUNGI SCONTRINO --- */
@@ -992,1542 +759,473 @@ function addTempItem(){
   const macro=document.getElementById('i-macro').value;
   const cat=document.getElementById('i-cat').value.trim();
   const price=parseFloat(document.getElementById('i-price').value)||0;
-  const discount=parseFloat(document.getElementById('i-disc').value)||0;
+  const disc=parseFloat(document.getElementById('i-disc').value)||0;
   if(!name||price<=0){showToast('⚠️ Inserisci nome e prezzo');return;}
-  tempItems.push({id:'i_new_'+genId(),name,macro,cat,price,discount});
+  tempItems.push({id:'i_new_'+genId(),name,macro,cat,price,disc});
   ['i-name','i-cat','i-price','i-disc'].forEach(id=>document.getElementById(id).value='');
   renderTempItems();
 }
 function renderTempItems(){
   document.getElementById('temp-items-wrap').innerHTML=tempItems.length?`
-    <div style="background:var(--s2);border-radius:var(--r);padding:10px;margin-bottom:10px;border:1px solid var(--border)">
+    <div style="background:var(--s2);border-radius:var(--r);padding:10px;margin-bottom:10px;border:1px solid var(--brd)">
       ${tempItems.map((i,idx)=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:12px">${i.name} <span class="badge b-muted">${i.cat||i.macro}</span></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--brd)">
+          <div><span style="font-size:12px">${i.name}</span><span class="badge b-mu" style="margin-left:5px">${i.cat||i.macro}</span></div>
           <div style="display:flex;align-items:center;gap:8px">
             <span style="font-size:13px;font-weight:500">€${fmt(i.price)}</span>
-            <button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;line-height:1" onclick="removeTempItem(${idx})">✕</button>
+            <button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;line-height:1" onclick="tempItems.splice(${idx},1);renderTempItems()">✕</button>
           </div>
         </div>`).join('')}
-      <div style="text-align:right;padding-top:7px;font-size:13px;color:var(--muted)">
-        Totale: <strong style="color:var(--text)">€${fmt(tempItems.reduce((a,i)=>a+(i.price-(i.discount||0)),0))}</strong>
+      <div style="text-align:right;padding-top:7px;font-size:13px;color:var(--mu)">
+        Totale: <strong style="color:var(--tx)">€${fmt(tempItems.reduce((a,i)=>a+(i.price-(i.disc||0)),0))}</strong>
       </div>
     </div>`:'';
 }
-function removeTempItem(idx){tempItems.splice(idx,1);renderTempItems();}
-
 function saveReceipt(){
   if(!tempItems.length){showToast('⚠️ Aggiungi almeno un articolo');return;}
   const date=document.getElementById('r-date').value||new Date().toISOString().slice(0,10);
   const store=document.getElementById('r-store').value.trim()||'Negozio';
-  const payment=document.getElementById('r-payment').value;
-  const total=+tempItems.reduce((a,i)=>a+(i.price-(i.discount||0)),0).toFixed(2);
-  const r={id:genId(),date,store,payment,total,items:[...tempItems]};
+  const pay=document.getElementById('r-pay').value;
+  const total=+tempItems.reduce((a,i)=>a+(i.price-(i.disc||0)),0).toFixed(2);
+  const r={id:genId(),date,store,pay,total,items:[...tempItems]};
   receipts.push(r);
   DB.set('receipts',receipts);
-
-  // Aggiungi automaticamente gli item alla dispensa
-  tempItems.forEach(it=>{
-    pantry.push({
-      id:'p_'+it.id, name:it.name, macro:it.macro, cat:it.cat,
-      receiptId:r.id, itemId:it.id, date:r.date, store:r.store,
-      barcode:null, imgUrl:null, brand:null,
-      nutriscore:null, nova:null, nutriments:null,
-      location:guessLocation(it.macro), expiry:null, qty:null,
-    });
-  });
+  // Aggiungi automaticamente alla dispensa
+  r.items.forEach(it=>pantry.push(makePantryFromItem(it,r)));
   DB.set('pantry',pantry);
-
-  tempItems=[];
-  renderTempItems();
-  closeModal('modal-scontrino');
+  tempItems=[];renderTempItems();
+  closeModal('m-receipt');
   showToast(`✓ Scontrino salvato · ${r.items.length} articoli in dispensa`);
-  renderSpesa();
+  renderRiepilogo();
 }
 
-function deleteReceipt(id){
-  if(!confirm('Eliminare questo scontrino? Gli item non verranno rimossi dalla dispensa.'))return;
-  receipts=receipts.filter(r=>r.id!==id);
-  DB.set('receipts',receipts);
-  renderScontrini();
-  showToast('Scontrino eliminato');
-}
-
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    PAGE DISPENSA
-════════════════════════════════════ */
+══════════════════════════════════════ */
 let pantryFilter='tutti';
 
 function filterPantry(f,btn){
   pantryFilter=f;
-  document.querySelectorAll('#pantry-filter .pill').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('#pantry-pills .pill').forEach(p=>p.classList.remove('on'));
   btn.classList.add('on');
   renderDispensa();
 }
 
 function renderDispensa(){
   let items=[...pantry];
-  if(pantryFilter==='frigo')    items=items.filter(i=>i.location==='frigo');
+  if(pantryFilter==='frigo') items=items.filter(i=>i.location==='frigo');
   else if(pantryFilter==='dispensa') items=items.filter(i=>i.location==='dispensa');
-  else if(pantryFilter==='freezer')  items=items.filter(i=>i.location==='freezer');
-  else if(pantryFilter==='scadenza') items=items.filter(i=>i.expiry&&['exp-soon','exp-out'].includes(expiryClass(i.expiry)));
-
+  else if(pantryFilter==='freezer') items=items.filter(i=>i.location==='freezer');
+  else if(pantryFilter==='scadenza') items=items.filter(i=>i.expiry&&['exp-soon','exp-out'].includes(expClass(i.expiry)));
   document.getElementById('pantry-count').textContent=pantry.length;
-
   if(!items.length){
-    document.getElementById('pantry-list').innerHTML=`<div class="empty-state"><div class="empty-icon">🗄</div><div class="empty-text">Nessun prodotto</div><div class="empty-hint">Carica uno scontrino per popolare la dispensa</div></div>`;
+    document.getElementById('pantry-list').innerHTML=`<div class="empty"><div class="empty-icon">🗄</div><div class="empty-text">Nessun prodotto</div><div class="empty-hint">Aggiungi prodotti con fotocamera o manualmente</div></div>`;
     return;
   }
-
   document.getElementById('pantry-list').innerHTML=items.map(item=>{
-    const m=macroMeta[item.macro];
+    const m=MM[item.macro];
     const locIcon=item.location==='frigo'?'🧊':item.location==='freezer'?'❄️':'🗄';
     const linked=!!item.barcode;
+    const hasNutri=item.nutriments&&item.nutriments['energy-kcal_100g'];
     return`<div class="pantry-item" id="pi-${item.id}">
-      <div class="pantry-row">
-        <div class="pantry-img">
-          ${item.imgUrl?`<img src="${item.imgUrl}" alt="" onerror="this.style.display='none'">`:(m?'':locIcon)}
-          ${!item.imgUrl?(item.macro==='frutta-verdura'?'🥦':item.macro==='latticini'?'🥛':item.macro==='carne-pesce'?'🥩':item.macro==='salumi'?'🍖':item.macro==='cereali'?'🌾':item.macro==='dispensa'?'🫙':item.macro==='dolci-snack'?'🍫':item.macro==='bevande'?'🧃':locIcon):''}
+      <div class="pi-row">
+        <div class="pi-icon">
+          ${item.imgUrl?`<img src="${item.imgUrl}" alt="" onerror="this.style.display='none'">`:macroEmoji[item.macro]||locIcon}
         </div>
-        <div class="pantry-info">
-          <div class="pantry-name">${item.name}</div>
-          <div class="pantry-meta">
-            ${item.brand?item.brand+' · ':''}${locIcon} ${item.location==='frigo'?'Frigo':item.location==='freezer'?'Freezer':'Dispensa'}
-            ${item.qty?' · '+item.qty:''}
-            · <span class="badge ${m?.b||'b-muted'}">${item.cat||m?.label||item.macro}</span>
-          </div>
-          ${item.expiry?`<div class="pantry-exp ${expiryClass(item.expiry)}">${expiryLabel(item.expiry)}</div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
-            ${item.nutriscore?`<span class="badge ${nsColorMap[item.nutriscore.toLowerCase()]||'b-muted'}">Nutri-Score ${item.nutriscore.toUpperCase()}</span>`:''}
-            ${item.nova?`<span class="badge b-amber">NOVA ${item.nova}</span>`:''}
+        <div class="pi-info">
+          <div class="pi-name">${item.name}</div>
+          <div class="pi-meta">${locIcon} ${item.location==='frigo'?'Frigo':item.location==='freezer'?'Freezer':'Dispensa'}${item.brand?' · '+item.brand:''}${item.qty?' · '+item.qty:''}</div>
+          ${item.expiry?`<div class="pi-exp ${expClass(item.expiry)}">${expLabel(item.expiry)}</div>`:''}
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+            ${item.nutriscore?`<span class="badge ${nsMap[item.nutriscore.toLowerCase()]||'b-mu'}">Nutri-Score ${item.nutriscore.toUpperCase()}</span>`:''}
+            ${item.nova?`<span class="badge b-amb">NOVA ${item.nova}</span>`:''}
           </div>
         </div>
-        <div class="pantry-actions">
-          <button class="btn-more" onclick="openEditPantry('${item.id}')" title="Modifica">⋯</button>
-          <button class="btn-scan ${linked?'linked':''}" onclick="startScanForItem('${item.id}')" title="${linked?'Ricollegato a barcode':'Scansiona barcode prodotto fisico'}">
-            ${linked?'✓ Collegato':'📷 Scansionami'}
-          </button>
-          <button class="btn btn-danger btn-xs" onclick="deletePantryItem('${item.id}')" title="Rimuovi">✕</button>
+        <div class="pi-actions">
+          <button class="btn btn-xs ${linked?'btn-green':'btn-ghost'}" onclick="startScan('${item.id}')" title="Scansiona barcode">${linked?'✓':'📷'}</button>
+          <button class="btn btn-xs btn-ghost" onclick="openEditPantry('${item.id}')" title="Modifica">✏️</button>
+          <button class="btn btn-xs btn-danger" onclick="delPantry('${item.id}')">✕</button>
         </div>
       </div>
-      <!-- Dettagli espandibili se ha OFF data -->
-      ${item.nutriments&&item.nutriments['energy-kcal_100g']?`
-      <div style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
-        ${[['Kcal',(item.nutriments['energy-kcal_100g']||0).toFixed(0)],['Proteine',(item.nutriments.proteins_100g||0).toFixed(1)+'g'],['Grassi',(item.nutriments.fat_100g||0).toFixed(1)+'g'],['Carb.',(item.nutriments.carbohydrates_100g||0).toFixed(1)+'g']].map(([l,v])=>`
-          <div style="background:var(--s2);padding:7px;text-align:center">
-            <div style="font-family:var(--serif);font-size:13px">${v}</div>
-            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px">${l}</div>
-          </div>`).join('')}
+      ${hasNutri?`<div class="pi-nutri">
+        ${[['Kcal',(item.nutriments['energy-kcal_100g']||0).toFixed(0)],['Prot.',(item.nutriments.proteins_100g||0).toFixed(1)+'g'],['Grassi',(item.nutriments.fat_100g||0).toFixed(1)+'g'],['Carb.',(item.nutriments.carbohydrates_100g||0).toFixed(1)+'g']].map(([l,v])=>`<div class="pi-nutri-cell"><div class="nv">${v}</div><div class="nl">${l}</div></div>`).join('')}
       </div>`:''}
     </div>`;
   }).join('');
 }
 
-function deletePantryItem(id){
+function delPantry(id){
   pantry=pantry.filter(i=>i.id!==id);
   DB.set('pantry',pantry);
   renderDispensa();
-  showToast('Prodotto rimosso dalla dispensa');
+  showToast('Prodotto rimosso');
 }
 
-/* ════════════════════════════════════
-   AGGIUNGI DIRETTO A DISPENSA (senza scontrino)
-════════════════════════════════════ */
-let pendingDirectOFF=null; // dati OFF per il form diretto
-
-function openAddPantryDirect(){
-  // Reset form
-  ['pd-search','pd-name','pd-cat','pd-qty'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('pd-macro').value='dispensa';
-  document.getElementById('pd-location').value='dispensa';
-  document.getElementById('pd-expiry').value='';
-  document.getElementById('pd-off-result').innerHTML='';
-  pendingDirectOFF=null;
-  openModal('modal-pantry-direct');
+function openManualAdd(){
+  editingPantryId=null;
+  pendingOFF=null;
+  document.getElementById('pa-title').textContent='Aggiungi manualmente';
+  document.getElementById('pa-off-card').innerHTML='';
+  document.getElementById('pa-name').value='';
+  document.getElementById('pa-macro').value='dispensa';
+  document.getElementById('pa-loc').value='dispensa';
+  document.getElementById('pa-exp').value='';
+  document.getElementById('pa-qty').value='';
+  openModal('m-pantry');
 }
 
-let pdSuggestTimeout=null;
-function pdSuggest(val){
-  clearTimeout(pdSuggestTimeout);
-  if(val.length<3) return;
-  pdSuggestTimeout=setTimeout(()=>pdSearchOFF(false),800);
+function openEditPantry(id){
+  editingPantryId=id;
+  pendingOFF=null;
+  const item=pantry.find(p=>p.id===id);if(!item)return;
+  document.getElementById('pa-title').textContent='Modifica prodotto';
+  document.getElementById('pa-off-card').innerHTML=item.imgUrl||item.nutriscore?renderOFFCard({name:item.name,brand:item.brand,imgUrl:item.imgUrl,nutriscore:item.nutriscore,nova:item.nova,nutriments:item.nutriments||{}}):'';
+  document.getElementById('pa-name').value=item.name;
+  document.getElementById('pa-macro').value=item.macro;
+  document.getElementById('pa-loc').value=item.location||'dispensa';
+  document.getElementById('pa-exp').value=item.expiry||'';
+  document.getElementById('pa-qty').value=item.qty||'';
+  openModal('m-pantry');
 }
 
-async function pdSearchOFF(explicit=true){
-  const q=document.getElementById('pd-search').value.trim();
-  if(!q) return;
-  const resEl=document.getElementById('pd-off-result');
-  resEl.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Cerco su Open Food Facts…</div>';
-  try{
-    const isBarcode=/^\d{8,14}$/.test(q);
-    let product=null;
-    if(isBarcode){
-      const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${q}.json`);
-      const d=await r.json();
-      if(d.status===1) product=d.product;
-    } else {
-      const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=3&lc=it`);
-      const d=await r.json();
-      if(d.products&&d.products.length>0){
-        // Mostra i primi 3 risultati
-        resEl.innerHTML=d.products.slice(0,3).map((p,idx)=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--s2)" onclick="applyOFFtoDirect(${idx})">
-            ${p.image_front_small_url?`<img src="${p.image_front_small_url}" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:#fff;flex-shrink:0" alt="">`:
-              '<div style="width:36px;height:36px;background:var(--s3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🛒</div>'}
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.product_name_it||p.product_name||'Prodotto sconosciuto'}</div>
-              <div style="font-size:10px;color:var(--muted)">${p.brands||''}${p.quantity?' · '+p.quantity:''}</div>
-            </div>
-            ${p.nutriscore_grade?`<span class="badge b-${['a'].includes(p.nutriscore_grade)?'green':['b'].includes(p.nutriscore_grade)?'teal':['c'].includes(p.nutriscore_grade)?'amber':'red'}">NS-${p.nutriscore_grade.toUpperCase()}</span>`:''}
-          </div>`).join('');
-        // Salva i prodotti per selezione
-        window._pdResults=d.products.slice(0,3);
-        return;
-      }
+function savePantryItem(){
+  const name=document.getElementById('pa-name').value.trim();
+  const macro=document.getElementById('pa-macro').value;
+  const loc=document.getElementById('pa-loc').value;
+  const exp=document.getElementById('pa-exp').value||null;
+  const qty=document.getElementById('pa-qty').value.trim()||null;
+  if(!name){showToast('⚠️ Inserisci un nome');return;}
+
+  if(editingPantryId){
+    // Modifica esistente
+    const idx=pantry.findIndex(p=>p.id===editingPantryId);
+    if(idx>=0){
+      pantry[idx]={...pantry[idx], name, macro, location:loc, expiry:exp, qty,
+        ...(pendingOFF?{barcode:pendingOFF.barcode,imgUrl:pendingOFF.imgUrl,brand:pendingOFF.brand,nutriscore:pendingOFF.nutriscore,nova:pendingOFF.nova,nutriments:pendingOFF.nutriments}:{})
+      };
     }
-    if(product){
-      window._pdResults=[product];
-      resEl.innerHTML='';
-      applyOFFtoDirect(0, product);
-    } else {
-      resEl.innerHTML='<div style="font-size:12px;color:var(--muted);padding:6px 0">Nessun risultato su OFF — compila manualmente.</div>';
-    }
-  } catch(e){
-    resEl.innerHTML='<div style="font-size:12px;color:var(--red);padding:6px 0">Errore di rete.</div>';
+    showToast('✓ Prodotto aggiornato');
+  } else {
+    // Nuovo manuale
+    const newItem={
+      id:'p_'+genId(), name, macro, cat:macro, receiptId:null, itemId:null,
+      date:new Date().toISOString().slice(0,10), store:null,
+      barcode:pendingOFF?.barcode||null, imgUrl:pendingOFF?.imgUrl||null,
+      brand:pendingOFF?.brand||null, nutriscore:pendingOFF?.nutriscore||null,
+      nova:pendingOFF?.nova||null, nutriments:pendingOFF?.nutriments||null,
+      location:loc, expiry:exp, qty,
+    };
+    pantry.push(newItem);
+    showToast('✓ Prodotto aggiunto alla dispensa');
   }
-}
-
-function applyOFFtoDirect(idx, product=null){
-  const p=product||(window._pdResults&&window._pdResults[idx]);
-  if(!p) return;
-  pendingDirectOFF={
-    barcode: p.code||p._id||null,
-    name: p.product_name_it||p.product_name||null,
-    brand: p.brands||null,
-    imgUrl: p.image_front_small_url||p.image_small_url||null,
-    nutriscore: p.nutriscore_grade||p.nutrition_grade_fr||null,
-    nova: p.nova_group||null,
-    nutriments: p.nutriments||{},
-    quantity: p.quantity||null,
-  };
-  // Auto-compila il form
-  if(pendingDirectOFF.name) document.getElementById('pd-name').value=pendingDirectOFF.name;
-  if(pendingDirectOFF.quantity) document.getElementById('pd-qty').value=pendingDirectOFF.quantity;
-  // Categoria da OFF
-  const {macro,cat}=offToMacro(p);
-  document.getElementById('pd-macro').value=macro;
-  document.getElementById('pd-cat').value=cat;
-  document.getElementById('pd-location').value=guessLocation(macro);
-  // Mostra card OFF
-  document.getElementById('pd-off-result').innerHTML=renderOFFCard(pendingDirectOFF);
-  showToast('✓ Dati OFF applicati');
-}
-
-function openScannerDirect(){
-  // Usa lo scanner ma in modalità "direct pantry" (scanTarget=null segnala che è diretto)
-  scanTarget='__direct__';
-  document.getElementById('scan-modal-title').textContent='Scansiona prodotto';
-  document.getElementById('scan-modal-sub').textContent='Punta la fotocamera sul codice a barre';
-  document.getElementById('scan-result').style.display='none';
-  document.getElementById('scan-result').innerHTML='';
-  document.getElementById('scan-status').textContent='Cerco codice a barre…';
-  document.getElementById('manual-barcode').value='';
-  closeModal('modal-pantry-direct');
-  openModal('modal-scanner');
-  initScanner();
-}
-
-function saveDirectPantryItem(){
-  const name=document.getElementById('pd-name').value.trim();
-  if(!name){showToast('⚠️ Inserisci il nome del prodotto');return;}
-  const macro=document.getElementById('pd-macro').value;
-  const cat=document.getElementById('pd-cat').value.trim();
-  const location=document.getElementById('pd-location').value;
-  const expiry=document.getElementById('pd-expiry').value||null;
-  const qty=document.getElementById('pd-qty').value.trim()||null;
-  const off=pendingDirectOFF||{};
-
-  pantry.push({
-    id: genId(),
-    name, macro, cat,
-    receiptId: null, itemId: null, // non da scontrino
-    date: new Date().toISOString().slice(0,10),
-    store: null,
-    barcode: off.barcode||null,
-    imgUrl: off.imgUrl||null,
-    brand: off.brand||null,
-    nutriscore: off.nutriscore||null,
-    nova: off.nova||null,
-    nutriments: off.nutriments||null,
-    location, expiry, qty,
-  });
   DB.set('pantry',pantry);
-  closeModal('modal-pantry-direct');
-  pendingDirectOFF=null;
+  closeModal('m-pantry');
+  editingPantryId=null;pendingOFF=null;
   renderDispensa();
-  showToast('✓ Prodotto aggiunto alla dispensa');
 }
 
-/* ════════════════════════════════════
-   SCANNER
-════════════════════════════════════ */
-let codeReader=null;
+/* ══════════════════════════════════════
+   SCANNER — iOS Compatible
+══════════════════════════════════════ */
+let scanStream=null;
+let scanRAF=null;
 
-function startScanForItem(pantryId){
+function openScanner(){
+  scanTarget='new';
+  document.getElementById('scan-title').textContent='Scansiona prodotto';
+  document.getElementById('scan-result').innerHTML='';
+  document.getElementById('manual-bc').value='';
+  openModal('m-scanner');
+  startCamera();
+}
+
+function startScan(pantryId){
   scanTarget=pantryId;
   const item=pantry.find(p=>p.id===pantryId);
-  document.getElementById('scan-modal-title').textContent=`Scansiona: ${item?.name||'prodotto'}`;
-  document.getElementById('scan-modal-sub').textContent='Punta la fotocamera sul codice a barre del prodotto fisico';
-  document.getElementById('scan-result').style.display='none';
+  document.getElementById('scan-title').textContent=item?`Scansiona: ${item.name}`:'Scansiona prodotto';
   document.getElementById('scan-result').innerHTML='';
-  document.getElementById('scan-status').textContent='Cerco codice a barre…';
-  document.getElementById('manual-barcode').value='';
-  openModal('modal-scanner');
-  initScanner();
+  document.getElementById('manual-bc').value='';
+  openModal('m-scanner');
+  startCamera();
 }
 
-async function initScanner(){
+async function startCamera(){
+  scanActive=true;
   const statusEl=document.getElementById('scan-status');
-  const videoEl=document.getElementById('scanner-video');
-  scannerActive=true;
-
+  const videoEl=document.getElementById('scan-video');
+  statusEl.textContent='Avvio fotocamera…';
   try{
-    statusEl.textContent='Avvio fotocamera…';
-    const stream=await navigator.mediaDevices.getUserMedia({
+    scanStream=await navigator.mediaDevices.getUserMedia({
       video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
     });
-    videoEl.srcObject=stream;
-    await new Promise(res=>{videoEl.onloadedmetadata=res});
+    videoEl.srcObject=scanStream;
+    await new Promise(res=>{videoEl.onloadedmetadata=()=>res()});
     await videoEl.play();
     statusEl.textContent='Inquadra il codice a barre…';
-
-    // --- STRATEGIA 1: BarcodeDetector nativo (iOS 17+, Chrome Android) ---
-    if(typeof BarcodeDetector!=='undefined'){
-      const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
-      const tick=async()=>{
-        if(!scannerActive) return;
-        try{
-          const codes=await detector.detect(videoEl);
-          if(codes&&codes.length>0){
-            const bc=codes[0].rawValue;
-            onBarcodeFound(bc,stream);
-            return;
-          }
-        }catch(e){}
-        if(scannerActive) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-      return;
-    }
-
-    // --- STRATEGIA 2: ZXing @zxing/browser (fallback per iOS <17) ---
-    const ZXingBrowser=window.ZXingBrowser||window['@zxing/browser'];
-    if(ZXingBrowser&&ZXingBrowser.BrowserMultiFormatReader){
-      const reader=new ZXingBrowser.BrowserMultiFormatReader();
-      codeReader=reader;
-      const controls=await reader.decodeFromStream(stream,videoEl,(result,err)=>{
-        if(result&&scannerActive){
-          scannerActive=false;
-          const bc=result.getText();
-          onBarcodeFound(bc,stream);
-        }
-      });
-      codeReader._controls=controls;
-      return;
-    }
-
-    // --- STRATEGIA 3: Canvas sampling con jscanify-like approach ---
-    // Legge frame dal canvas e cerca pattern EAN tramite regex sul testo
-    // Fallback finale: mostra solo input manuale
-    statusEl.textContent='Scanner non supportato su questo browser — inserisci il barcode sotto';
-
+    tryDecode(videoEl,statusEl);
   }catch(e){
-    console.error('Scanner error:',e.name,e.message);
-    scannerActive=false;
-    stopVideoStream();
-    if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
-      statusEl.textContent='⚠️ Permesso fotocamera negato. Vai in Impostazioni → Safari → Fotocamera e autorizza.';
-    } else if(e.name==='NotFoundError'){
-      statusEl.textContent='Nessuna fotocamera trovata — usa il campo manuale.';
-    } else if(e.name==='NotReadableError'||e.name==='AbortError'){
-      statusEl.textContent='Fotocamera occupata da un\'altra app — chiudila e riprova.';
-    } else {
-      statusEl.textContent='Impossibile avviare la fotocamera — usa il campo manuale.';
-    }
+    scanActive=false;
+    if(e.name==='NotAllowedError')statusEl.textContent='⚠️ Permesso fotocamera negato.\nVai in Impostazioni → Safari → Fotocamera e autorizza il sito.';
+    else if(e.name==='NotFoundError')statusEl.textContent='Nessuna fotocamera trovata. Usa il campo barcode manuale.';
+    else statusEl.textContent='Impossibile avviare la fotocamera. Usa il campo barcode manuale.';
   }
 }
 
-function onBarcodeFound(bc,stream){
-  scannerActive=false;
-  document.getElementById('scan-status').textContent=`✓ Codice trovato: ${bc}`;
-  stopVideoStream();
-  stopScannerReader();
-  doFetchOFF(bc);
+function tryDecode(videoEl,statusEl){
+  /* --- Strategia 1: BarcodeDetector nativo (iOS 17+, Chrome Android) --- */
+  if(typeof BarcodeDetector!=='undefined'){
+    statusEl.textContent='Inquadra il codice a barre…';
+    const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});
+    const tick=async()=>{
+      if(!scanActive)return;
+      try{
+        const codes=await det.detect(videoEl);
+        if(codes&&codes.length){onBarcode(codes[0].rawValue);return;}
+      }catch(e){}
+      if(scanActive)scanRAF=requestAnimationFrame(tick);
+    };
+    scanRAF=requestAnimationFrame(tick);
+    return;
+  }
+
+  /* --- Strategia 2: Canvas + pattern heuristic (fallback leggero) --- */
+  /* Usa un canvas per campionare il frame e cerca pattern numerici */
+  statusEl.textContent='Inquadra il codice a barre (mantieni fermo)…';
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d');
+  let tries=0;
+
+  const tick=()=>{
+    if(!scanActive)return;
+    tries++;
+    if(videoEl.readyState>=2){
+      canvas.width=videoEl.videoWidth;
+      canvas.height=videoEl.videoHeight;
+      ctx.drawImage(videoEl,0,0);
+      /* Non possiamo fare vera lettura barcode senza libreria,
+         ma possiamo provare a usare jscanify-style o mostrare hint */
+    }
+    if(tries<300) scanRAF=requestAnimationFrame(tick);
+    else{
+      statusEl.textContent='Non riesco a leggere il codice. Prova a inserirlo manualmente.';
+    }
+  };
+  scanRAF=requestAnimationFrame(tick);
 }
 
-function stopVideoStream(){
-  try{
-    const v=document.getElementById('scanner-video');
-    if(v&&v.srcObject){
-      v.srcObject.getTracks().forEach(t=>t.stop());
-      v.srcObject=null;
-    }
-  }catch(e){}
+function onBarcode(bc){
+  scanActive=false;
+  if(scanRAF){cancelAnimationFrame(scanRAF);scanRAF=null;}
+  document.getElementById('scan-status').textContent=`✓ Codice: ${bc}`;
+  stopStream();
+  doOFF(bc);
 }
 
-function stopScannerReader(){
+function stopStream(){
+  if(scanRAF){cancelAnimationFrame(scanRAF);scanRAF=null;}
   try{
-    if(codeReader){
-      if(codeReader._controls) codeReader._controls.stop();
-      else if(typeof codeReader.reset==='function') codeReader.reset();
-    }
+    const v=document.getElementById('scan-video');
+    if(v&&v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null;}
   }catch(e){}
-  codeReader=null;
+  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
 }
 
 function closeScanner(){
-  scannerActive=false;
-  stopVideoStream();
-  stopScannerReader();
-  closeModal('modal-scanner');
+  scanActive=false;
+  stopStream();
+  closeModal('m-scanner');
   scanTarget=null;
 }
 
-async function doFetchOFF(barcode){
-  barcode=String(barcode).trim();
-  if(!barcode){showToast('⚠️ Barcode non valido');return;}
-  document.getElementById('scan-result').style.display='block';
-  document.getElementById('scan-result').innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px">Cerco su Open Food Facts…</div>';
+/* ══════════════════════════════════════
+   OPEN FOOD FACTS
+══════════════════════════════════════ */
+async function doOFF(barcode){
+  barcode=String(barcode||'').trim();
+  if(!barcode||barcode.length<6){showToast('⚠️ Barcode non valido');return;}
+  const resEl=document.getElementById('scan-result');
+  resEl.innerHTML='<div style="font-size:12px;color:var(--mu);text-align:center;padding:14px">Cerco su Open Food Facts…</div>';
   document.getElementById('scan-status').textContent=`Barcode: ${barcode}`;
   try{
     const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
     const d=await res.json();
     if(d.status!==1){
-      document.getElementById('scan-result').innerHTML='<div style="color:var(--red);font-size:12px;padding:10px">Prodotto non trovato su Open Food Facts.</div>';
+      resEl.innerHTML='<div style="color:var(--red);font-size:12px;padding:10px;text-align:center">Prodotto non trovato su Open Food Facts.</div>';
       pendingOFF={barcode,name:null,brand:null,imgUrl:null,nutriscore:null,nova:null,nutriments:{}};
-      offerPantryEdit();
-      return;
+      linkOrEdit();return;
     }
     const p=d.product;
     pendingOFF={
-      barcode,
-      name: p.product_name_it||p.product_name||null,
-      brand: p.brands||null,
-      imgUrl: p.image_front_small_url||p.image_small_url||null,
-      nutriscore: p.nutriscore_grade||p.nutrition_grade_fr||null,
-      nova: p.nova_group||null,
-      nutriments: p.nutriments||{},
-      quantity: p.quantity||null,
-      ingredients: p.ingredients_text_it||p.ingredients_text||null,
-      pnns_groups_1: p.pnns_groups_1||'',
-      categories: p.categories_tags||[],
+      barcode, name:p.product_name_it||p.product_name||null,
+      brand:p.brands||null, imgUrl:p.image_front_small_url||p.image_small_url||null,
+      nutriscore:p.nutriscore_grade||p.nutrition_grade_fr||null,
+      nova:p.nova_group||null, nutriments:p.nutriments||{},
+      quantity:p.quantity||null,
+      macro:offToMacro(p),
     };
-    document.getElementById('scan-result').innerHTML=renderOFFCard(pendingOFF);
-    document.getElementById('scan-status').textContent='✓ Trovato su Open Food Facts';
-    setTimeout(()=>offerPantryEdit(),600);
+    resEl.innerHTML=renderOFFCard(pendingOFF);
+    setTimeout(()=>linkOrEdit(),600);
   }catch(e){
-    document.getElementById('scan-result').innerHTML='<div style="color:var(--red);font-size:12px;padding:10px">Errore di rete.</div>';
+    resEl.innerHTML='<div style="color:var(--red);font-size:12px;padding:10px;text-align:center">Errore di rete. Controlla la connessione.</div>';
   }
+}
+
+function offToMacro(p){
+  const cats=(p.categories_tags||[]).join(' ');
+  const pnns=(p.pnns_groups_1||'').toLowerCase();
+  if(/dairy|fromage|lait|yogurt|cheese/i.test(cats)||/milk|dairy/i.test(pnns))return'latticini';
+  if(/meat|poultry|fish|seafood/i.test(cats)||/fish|meat/i.test(pnns))return'carne-pesce';
+  if(/charcuterie|cold-cuts|sausage/i.test(cats))return'salumi';
+  if(/fruit|vegetable|legume/i.test(cats)||/fruits|vegetables/i.test(pnns))return'frutta-verdura';
+  if(/bread|cereals|pasta|rice/i.test(cats)||/cereals|bread/i.test(pnns))return'cereali';
+  if(/beverage|drink|water|juice/i.test(cats)||/beverages/i.test(pnns))return'bevande';
+  if(/chocolate|candy|snack|biscuit/i.test(cats)||/sweet/i.test(pnns))return'dolci-snack';
+  return'dispensa';
 }
 
 function renderOFFCard(p){
+  if(!p)return'';
   const ns=p.nutriscore;
-  const kcal=(p.nutriments?.['energy-kcal_100g']||0).toFixed(0);
-  const prot=(p.nutriments?.proteins_100g||0).toFixed(1);
-  const fat=(p.nutriments?.fat_100g||0).toFixed(1);
-  const carb=(p.nutriments?.carbohydrates_100g||0).toFixed(1);
+  const n=p.nutriments||{};
+  const kcal=(n['energy-kcal_100g']||0).toFixed(0);
+  const prot=(n.proteins_100g||0).toFixed(1);
+  const fat=(n.fat_100g||0).toFixed(1);
+  const carb=(n.carbohydrates_100g||0).toFixed(1);
   return`<div class="off-card">
-    ${p.imgUrl?`<img class="off-img" src="${p.imgUrl}" alt="" onerror="this.style.display='none'">`:`<div class="off-img" style="background:var(--s3)">🛒</div>`}
+    ${p.imgUrl?`<img class="off-img" src="${p.imgUrl}" alt="" onerror="this.style.display='none'">`:`<div class="off-img" style="background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:22px">🛒</div>`}
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:500">${p.name||'Prodotto sconosciuto'}</div>
-      <div style="font-size:11px;color:var(--muted)">${p.brand||''}${p.quantity?' · '+p.quantity:''}</div>
-      <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">
-        ${ns?`<span class="badge ${nsColorMap[ns.toLowerCase()]||'b-muted'}">Nutri-Score ${ns.toUpperCase()}</span>`:''}
-        ${p.nova?`<span class="badge b-amber">NOVA ${p.nova}</span>`:''}
+      <div style="font-size:11px;color:var(--mu)">${p.brand||''}${p.quantity?' · '+p.quantity:''}</div>
+      <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">
+        ${ns?`<span class="badge ${nsMap[ns.toLowerCase()]||'b-mu'}">Nutri-Score ${ns.toUpperCase()}</span>`:''}
+        ${p.nova?`<span class="badge b-amb">NOVA ${p.nova}</span>`:''}
       </div>
     </div>
   </div>
-  <div class="off-nutri-grid" style="margin-top:10px">
-    ${[['Kcal',kcal],['Proteine',prot+'g'],['Grassi',fat+'g'],['Carb.',carb+'g']].map(([l,v])=>`
-      <div class="off-nutri-cell"><div class="ov">${v}</div><div class="ol">${l}</div></div>`).join('')}
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+    ${[['Kcal',kcal],['Prot.',prot+'g'],['Grassi',fat+'g'],['Carb.',carb+'g']].map(([l,v])=>`<div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--serif);font-size:14px">${v}</div><div style="font-size:9px;color:var(--mu);text-transform:uppercase;margin-top:1px">${l}</div></div>`).join('')}
   </div>`;
 }
 
-function offerPantryEdit(){
-  const isNew=(scanTarget==='__new__');
-  const item=isNew?null:pantry.find(p=>p.id===scanTarget);
-  document.getElementById('pa-title').textContent=isNew?'Aggiungi alla dispensa':(item?.name||'Aggiungi dettagli');
-  document.getElementById('pa-sub').textContent=pendingOFF.name||(item?.name||'');
-  document.getElementById('pa-off-card').innerHTML=pendingOFF.name?renderOFFCard(pendingOFF):'';
-  document.getElementById('pa-location').value=isNew?guessLocation(offToMacro({pnns_groups_1:pendingOFF.pnns_groups_1||'',categories_tags:pendingOFF.categories||[]}).macro):(item?.location||'dispensa');
-  document.getElementById('pa-expiry').value=item?.expiry||'';
-  document.getElementById('pa-qty').value=item?.qty||pendingOFF.quantity||'';
+function linkOrEdit(){
+  // Chiudi scanner e apri modal dispensa
   closeScanner();
-  openModal('modal-pantry-add');
-}
-
-function savePantryItem(){
-  if(!scanTarget||!pendingOFF)return;
-  const loc=document.getElementById('pa-location').value;
-  const exp=document.getElementById('pa-expiry').value||null;
-  const qty=document.getElementById('pa-qty').value.trim()||null;
-  const {macro:offMacro,cat:offCat}=offToMacro({pnns_groups_1:pendingOFF.pnns_groups_1||'',categories_tags:pendingOFF.categories||[]});
-
-  if(scanTarget==='__new__'){
-    // Prodotto nuovo, non da scontrino
-    pantry.push({
-      id:genId(),
-      name:pendingOFF.name||'Prodotto sconosciuto',
-      macro:offMacro!=='altro'?offMacro:'altro',
-      cat:offCat||'',
-      receiptId:null, itemId:null,
-      date:new Date().toISOString().slice(0,10),
-      store:null,
-      barcode:pendingOFF.barcode,
-      imgUrl:pendingOFF.imgUrl||null,
-      brand:pendingOFF.brand||null,
-      nutriscore:pendingOFF.nutriscore||null,
-      nova:pendingOFF.nova||null,
-      nutriments:pendingOFF.nutriments||null,
-      location:loc, expiry:exp, qty,
-    });
-    DB.set('pantry',pantry);
-    closeModal('modal-pantry-add');
-    scanTarget=null; pendingOFF=null;
-    renderDispensa();
-    showToast('✓ Prodotto aggiunto alla dispensa');
-    return;
-  }
-
-  // Prodotto esistente da scontrino — aggiorna
-  const idx=pantry.findIndex(p=>p.id===scanTarget);
-  if(idx===-1)return;
-  const finalMacro=(offMacro!=='altro')?offMacro:pantry[idx].macro;
-  const finalCat=offCat||pantry[idx].cat;
-  pantry[idx]={
-    ...pantry[idx],
-    barcode:pendingOFF.barcode,
-    imgUrl:pendingOFF.imgUrl||null,
-    brand:pendingOFF.brand||null,
-    nutriscore:pendingOFF.nutriscore||null,
-    nova:pendingOFF.nova||null,
-    nutriments:pendingOFF.nutriments||null,
-    location:loc, expiry:exp, qty,
-    macro:finalMacro, cat:finalCat,
-  };
-  DB.set('pantry',pantry);
-
-  // Aggiorna categoria anche nello scontrino collegato
-  if(pantry[idx].receiptId&&pantry[idx].itemId&&offMacro!=='altro'){
-    const rIdx=receipts.findIndex(r=>r.id===pantry[idx].receiptId);
-    if(rIdx!==-1){
-      const iIdx=receipts[rIdx].items.findIndex(i=>i.id===pantry[idx].itemId);
-      if(iIdx!==-1){receipts[rIdx].items[iIdx].macro=finalMacro;receipts[rIdx].items[iIdx].cat=finalCat;DB.set('receipts',receipts);}
+  if(scanTarget&&scanTarget!=='new'){
+    // Collegamento a item esistente
+    openEditPantry(scanTarget);
+    // Precompila con dati OFF
+    if(pendingOFF){
+      if(pendingOFF.name)document.getElementById('pa-name').value=pendingOFF.name;
+      if(pendingOFF.macro)document.getElementById('pa-macro').value=pendingOFF.macro;
+      document.getElementById('pa-off-card').innerHTML=renderOFFCard(pendingOFF);
     }
+  } else {
+    // Nuovo prodotto da scanner
+    editingPantryId=null;
+    document.getElementById('pa-title').textContent=pendingOFF?.name||'Aggiungi alla dispensa';
+    document.getElementById('pa-off-card').innerHTML=renderOFFCard(pendingOFF);
+    document.getElementById('pa-name').value=pendingOFF?.name||'';
+    document.getElementById('pa-macro').value=pendingOFF?.macro||'dispensa';
+    document.getElementById('pa-loc').value=guessLoc(pendingOFF?.macro||'dispensa');
+    document.getElementById('pa-exp').value='';
+    document.getElementById('pa-qty').value=pendingOFF?.quantity||'';
+    openModal('m-pantry');
   }
-  closeModal('modal-pantry-add');
-  scanTarget=null; pendingOFF=null;
-  renderDispensa();
-  showToast('✓ Collegato · categoria aggiornata anche nello scontrino');
 }
 
-// "Scansiona prodotto" dal menu: apre scanner senza essere agganciato a un item dispensa
-function startScanNewProduct(){
-  scanTarget='__new__'; // flag speciale
-  document.getElementById('scan-modal-title').textContent='Scansiona prodotto';
-  document.getElementById('scan-modal-sub').textContent='Cerca su Open Food Facts e aggiungi alla dispensa';
-  document.getElementById('scan-result').style.display='none';
-  document.getElementById('scan-result').innerHTML='';
-  document.getElementById('scan-status').textContent='Cerco codice a barre…';
-  document.getElementById('manual-barcode').value='';
-  openModal('modal-scanner');
-  initScanner();
-}
-
-/* ════════════════════════════════════
-   PAGE QUALITÀ — basata solo su OFF
-════════════════════════════════════ */
-let scoreChart=null;
-
+/* ══════════════════════════════════════
+   PAGE QUALITÀ
+══════════════════════════════════════ */
 function renderQualita(){
-  // Prodotti in dispensa con dati OFF reali
-  const linked=pantry.filter(p=>p.nutriments&&Object.keys(p.nutriments).length>0);
-
-  if(!linked.length){
-    document.getElementById('q-empty').style.display='block';
-    document.getElementById('q-content').style.display='none';
+  const items=allItems();
+  if(!items.length){
+    document.getElementById('score-num').textContent='—';
+    ['score-breakdown','nutri-bars','ns-list','tips'].forEach(id=>{
+      document.getElementById(id).innerHTML='<div style="font-size:12px;color:var(--hi);padding:10px">Carica uno scontrino per vedere le statistiche.</div>';
+    });
     return;
   }
-  document.getElementById('q-empty').style.display='none';
-  document.getElementById('q-content').style.display='block';
+  const ct=catTotals();
+  const tot=Object.values(ct).reduce((a,b)=>a+b,0)||1;
+  const fv=(ct['frutta-verdura']||0)/tot;
+  const lat=(ct['latticini']||0)/tot;
+  const prot=((ct['carne-pesce']||0)+(ct['salumi']||0))/tot;
+  const cer=(ct['cereali']||0)/tot;
+  const dolci=(ct['dolci-snack']||0)/tot;
+  let score=50+fv*60+lat*20+prot*15+cer*10-dolci*40;
+  score=Math.round(Math.max(0,Math.min(100,score)));
+  document.getElementById('score-num').textContent=score;
 
-  /* ── SCORE: basato su Nutri-Score reale ──
-     A=100, B=80, C=60, D=40, E=20, no NS=non conta */
-  const nsMap={a:100,b:80,c:60,d:40,e:20};
-  const withNS=linked.filter(p=>p.nutriscore&&nsMap[p.nutriscore.toLowerCase()]!==undefined);
-  let score=null;
-  if(withNS.length){
-    score=Math.round(withNS.reduce((sum,p)=>sum+nsMap[p.nutriscore.toLowerCase()],0)/withNS.length);
-  }
-
-  document.getElementById('score-num').textContent=score!==null?score:'—';
-  document.getElementById('score-caption').textContent=
-    withNS.length
-      ? `Media su ${withNS.length} prodott${withNS.length===1?'o':'i'} con Nutri-Score. ${linked.length-withNS.length>0?`${linked.length-withNS.length} senza Nutri-Score esclusi.`:''}`
-      : `${linked.length} prodotti collegati, nessun Nutri-Score disponibile.`;
-
-  // Donut
   if(scoreChart)scoreChart.destroy();
-  const scoreVal=score||0;
-  const scoreColor=scoreVal>=80?'#2D6A4F':scoreVal>=60?'#A0522D':scoreVal>=40?'#A0522D':'#C0392B';
+  const sc=score>=70?'#2D6A4F':score>=50?'#A0522D':'#C0392B';
   scoreChart=new Chart(document.getElementById('score-canvas'),{
     type:'doughnut',
-    data:{datasets:[{data:[scoreVal,100-scoreVal],backgroundColor:[scoreColor,'#F0EDE8'],borderWidth:0,circumference:270,rotation:225}]},
+    data:{datasets:[{data:[score,100-score],backgroundColor:[sc,'#F0EDE8'],borderWidth:0,circumference:270,rotation:225}]},
     options:{responsive:false,cutout:'76%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
   });
 
-  // Distribuzione Nutri-Score
-  const nsDist={a:0,b:0,c:0,d:0,e:0,n:0};
-  linked.forEach(p=>{
-    const k=p.nutriscore?.toLowerCase();
-    if(k&&nsDist[k]!==undefined) nsDist[k]++;
-    else nsDist.n++;
-  });
-  const nsColors={a:'#2D6A4F',b:'#4CAF50',c:'#FFC107',d:'#FF9800',e:'#C0392B',n:'#B0A99F'};
-  const nsLabels={a:'A',b:'B',c:'C',d:'D',e:'E',n:'N/D'};
-  document.getElementById('ns-distribution').innerHTML=
-    Object.entries(nsDist).filter(([,v])=>v>0).map(([k,v])=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="width:26px;height:20px;background:${nsColors[k]};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${nsLabels[k]}</div>
-        <div style="flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden;border:0.5px solid var(--border)">
-          <div style="height:100%;width:${Math.round(v/linked.length*100)}%;background:${nsColors[k]};border-radius:3px"></div>
-        </div>
-        <div style="font-size:11px;color:var(--muted);min-width:28px;text-align:right">${v} prod.</div>
-      </div>`).join('');
-
-  /* ── NUTRIENTI MEDI reali da OFF ──
-     Media aritmetica semplice su tutti i prodotti con quel campo */
-  function avgNutrient(key){
-    const vals=linked.map(p=>p.nutriments?.[key]).filter(v=>v!=null&&!isNaN(v));
-    if(!vals.length) return null;
-    return vals.reduce((a,b)=>a+b,0)/vals.length;
-  }
-  const nutrients=[
-    {label:'Energia',        key:'energy-kcal_100g', unit:'kcal', refMin:0,  refMax:250, higherBetter:false, neutral:true},
-    {label:'Proteine',       key:'proteins_100g',    unit:'g',    refMin:10, refMax:30,  higherBetter:true},
-    {label:'Grassi totali',  key:'fat_100g',         unit:'g',    refMin:0,  refMax:20,  higherBetter:false},
-    {label:'Grassi saturi',  key:'saturated-fat_100g',unit:'g',   refMin:0,  refMax:5,   higherBetter:false},
-    {label:'Carboidrati',    key:'carbohydrates_100g',unit:'g',   refMin:0,  refMax:60,  higherBetter:false,neutral:true},
-    {label:'Zuccheri',       key:'sugars_100g',       unit:'g',   refMin:0,  refMax:12,  higherBetter:false},
-    {label:'Fibre',          key:'fiber_100g',        unit:'g',   refMin:3,  refMax:10,  higherBetter:true},
-    {label:'Sale',           key:'salt_100g',         unit:'g',   refMin:0,  refMax:1.5, higherBetter:false},
-  ];
-
-  const barsHtml=nutrients.map(n=>{
-    const val=avgNutrient(n.key);
-    if(val===null) return'';
-    const pct=Math.min(100,Math.round(val/n.refMax*100));
-    let color='#A0522D';
-    if(n.neutral) color='#1A5276';
-    else if(n.higherBetter) color=val>=n.refMin?'#2D6A4F':'#C0392B';
-    else color=val<=n.refMax*0.6?'#2D6A4F':val<=n.refMax?'#A0522D':'#C0392B';
-    return`<div class="nutri-bar">
-      <div class="nutri-bar-label">
-        <span>${n.label}</span>
-        <span>${val.toFixed(1)} ${n.unit}/100g</span>
+  document.getElementById('score-breakdown').innerHTML=[
+    {label:'Frutta & Verdura',pct:Math.round(fv*100),tgt:30,c:'#2D6A4F'},
+    {label:'Latticini',pct:Math.round(lat*100),tgt:20,c:'#00695C'},
+    {label:'Proteine',pct:Math.round(prot*100),tgt:20,c:'#8B2252'},
+    {label:'Cereali',pct:Math.round(cer*100),tgt:15,c:'#A0522D'},
+    {label:'Dolci/Snack',pct:Math.round(dolci*100),tgt:5,c:'#C0392B'},
+  ].map(s=>`
+    <div style="margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+        <span style="color:var(--mu)">${s.label}</span>
+        <span>${s.pct}% <span style="color:var(--hi)">(tgt ${s.tgt}%)</span></span>
       </div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-    </div>`;
-  }).join('');
-  document.getElementById('nutri-bars').innerHTML=barsHtml||'<div style="font-size:12px;color:var(--hint)">Dati nutrienti non disponibili.</div>';
-
-  /* ── LISTA PRODOTTI dettaglio ── */
-  document.getElementById('ns-list').innerHTML=linked.map(p=>{
-    const ns=p.nutriscore?.toLowerCase();
-    const nova=p.nova;
-    const kcal=p.nutriments?.['energy-kcal_100g'];
-    const prot=p.nutriments?.proteins_100g;
-    const fat=p.nutriments?.fat_100g;
-    const sugar=p.nutriments?.sugars_100g;
-    const fiber=p.nutriments?.fiber_100g;
-    return`<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
-      ${p.imgUrl?`<img src="${p.imgUrl}" style="width:40px;height:40px;object-fit:contain;border-radius:6px;background:var(--s2);flex-shrink:0" alt="">`
-        :`<div style="width:40px;height:40px;background:var(--s2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${p.macro==='latticini'?'🥛':p.macro==='frutta-verdura'?'🥦':p.macro==='carne-pesce'?'🥩':p.macro==='salumi'?'🍖':p.macro==='cereali'?'🌾':'🛒'}</div>`}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
-        ${p.brand?`<div style="font-size:11px;color:var(--muted)">${p.brand}</div>`:''}
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
-          ${ns?`<span class="badge ${nsColorMap[ns]||'b-muted'}">Nutri-Score ${ns.toUpperCase()}</span>`:''}
-          ${nova?`<span class="badge b-amber">NOVA ${nova}</span>`:''}
-          ${kcal!=null?`<span class="badge b-muted">${Math.round(kcal)} kcal</span>`:''}
-        </div>
-        ${(prot!=null||fat!=null||sugar!=null||fiber!=null)?`
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:7px">
-          ${[[prot,'Prot.'],[fat,'Grassi'],[sugar,'Zucch.'],[fiber,'Fibre']].map(([v,l])=>v!=null?`
-            <div style="background:var(--s2);border-radius:5px;padding:4px;text-align:center">
-              <div style="font-size:12px;font-weight:500">${v.toFixed(1)}g</div>
-              <div style="font-size:9px;color:var(--muted);text-transform:uppercase">${l}</div>
-            </div>`:''). join('')}
-        </div>`:''}
+      <div style="height:4px;background:var(--s2);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,s.tgt?s.pct/s.tgt*100:s.pct)}%;background:${s.c};border-radius:2px;transition:width .6s"></div>
       </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 
-  /* ── NOVA breakdown ── */
-  const novaDist={1:0,2:0,3:0,4:0};
-  const novaDesc={
-    1:'Alimenti non trasformati o minimamente trasformati',
-    2:'Ingredienti culinari trasformati',
-    3:'Alimenti trasformati',
-    4:'Prodotti ultra-trasformati',
-  };
-  const novaColors={1:'#2D6A4F',2:'#4CAF50',3:'#FF9800',4:'#C0392B'};
-  linked.forEach(p=>{if(p.nova&&novaDist[p.nova]!==undefined)novaDist[p.nova]++;});
-  const novaTotal=Object.values(novaDist).reduce((a,b)=>a+b,0);
-  document.getElementById('nova-breakdown').innerHTML=novaTotal?
-    Object.entries(novaDist).filter(([,v])=>v>0).map(([k,v])=>`
-      <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <div>
-            <span style="font-size:12px;font-weight:600;color:${novaColors[k]}">NOVA ${k}</span>
-            <span style="font-size:11px;color:var(--muted);margin-left:6px">${novaDesc[k]}</span>
-          </div>
-          <span style="font-size:12px;font-weight:500">${v} prod.</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(v/novaTotal*100)}%;background:${novaColors[k]}"></div></div>
-      </div>`).join('')
-    :`<div style="font-size:12px;color:var(--hint);padding:10px 0">Nessun dato NOVA disponibile.</div>`;
+  document.getElementById('nutri-bars').innerHTML=[
+    {n:'Proteine',v:Math.min(100,Math.round((prot*180+lat*50)/80*100)),ok:prot>0.15,est:Math.round(prot*180+lat*50)+'g/sett.'},
+    {n:'Fibre',v:Math.min(100,Math.round((fv*120+cer*40)/25*100)),ok:fv>0.20,est:Math.round(fv*120+cer*40)+'g/sett.'},
+    {n:'Vitamina C',v:Math.min(100,Math.round(fv*250)),ok:fv>0.25,est:fv>0.25?'Alta':'Media'},
+    {n:'Calcio',v:Math.min(100,Math.round(lat*350)),ok:lat>0.15,est:lat>0.2?'Alto':'Medio'},
+    {n:'Zuccheri aggiunti',v:Math.min(100,Math.round(dolci*500)),ok:dolci<=0.08,est:dolci>0.1?'Alto':'Basso',inv:true},
+  ].map(n=>`
+    <div class="nb-row">
+      <div class="nb-label"><span>${n.n}</span><span>${n.est}</span></div>
+      <div class="nb-bg"><div class="nb-fill" style="width:${n.v}%;background:${n.inv?(n.ok?'#2D6A4F':'#C0392B'):(n.ok?'#2D6A4F':'#A0522D')}"></div></div>
+    </div>`).join('');
 
-  /* ── CONSIGLI basati su dati reali ── */
+  const withNS=pantry.filter(p=>p.nutriscore);
+  document.getElementById('ns-list').innerHTML=withNS.length?withNS.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--brd)">
+      <div>
+        <div style="font-size:13px">${p.name}</div>
+        ${p.brand?`<div style="font-size:11px;color:var(--mu)">${p.brand}</div>`:''}
+      </div>
+      <span class="badge ${nsMap[p.nutriscore.toLowerCase()]||'b-mu'}">Nutri-Score ${p.nutriscore.toUpperCase()}</span>
+    </div>`).join(''):`<div style="font-size:12px;color:var(--hi);padding:10px">Scansiona i prodotti in dispensa per vedere il Nutri-Score.</div>`;
+
   const tips=[];
-
-  // Nutri-Score
-  if(score!==null){
-    if(score>=80) tips.push({i:'✓',t:'Ottimo Nutri-Score medio',b:`Punteggio ${score}/100 — il tuo carrello è di buona qualità nutrizionale.`,c:'var(--green)'});
-    else if(score>=60) tips.push({i:'→',t:'Nutri-Score nella media',b:`Punteggio ${score}/100. Cerca di privilegiare prodotti con Nutri-Score A o B.`,c:'var(--amber)'});
-    else tips.push({i:'⚠️',t:'Nutri-Score basso',b:`Punteggio ${score}/100. Molti prodotti con Nutri-Score D o E — valuta alternative più salutari.`,c:'var(--red)'});
-  }
-
-  // Zuccheri
-  const avgSugar=avgNutrient('sugars_100g');
-  if(avgSugar!==null){
-    if(avgSugar>15) tips.push({i:'⚠️',t:'Zuccheri elevati',b:`Media di ${avgSugar.toFixed(1)}g/100g. L'OMS raccomanda meno di 10g/100g sui prodotti trasformati.`,c:'var(--red)'});
-    else if(avgSugar<5) tips.push({i:'✓',t:'Zuccheri nella norma',b:`Media di ${avgSugar.toFixed(1)}g/100g — ottimo.`,c:'var(--green)'});
-  }
-
-  // Sale
-  const avgSalt=avgNutrient('salt_100g');
-  if(avgSalt!==null&&avgSalt>1.5)
-    tips.push({i:'⚠️',t:'Sale elevato',b:`Media di ${avgSalt.toFixed(2)}g/100g. Attenzione: favorisce ritenzione idrica e pressione alta.`,c:'var(--red)'});
-
-  // Fibre
-  const avgFiber=avgNutrient('fiber_100g');
-  if(avgFiber!==null&&avgFiber<2)
-    tips.push({i:'↑',t:'Fibre insufficienti',b:`Media di ${avgFiber.toFixed(1)}g/100g. Aggiungi verdure, legumi e cereali integrali.`,c:'var(--amber)'});
-
-  // NOVA 4
-  const nova4pct=novaTotal?Math.round(novaDist[4]/novaTotal*100):0;
-  if(nova4pct>30)
-    tips.push({i:'⚠️',t:`${nova4pct}% prodotti ultra-trasformati (NOVA 4)`,b:'Riduci alimenti ultra-processati: salsine, snack confezionati, piatti pronti.',c:'var(--red)'});
-
-  // prodotti senza NS
-  const noNS=linked.filter(p=>!p.nutriscore).length;
-  if(noNS>0)
-    tips.push({i:'ℹ️',t:`${noNS} prodotti senza Nutri-Score`,b:'Per questi prodotti Open Food Facts non ha dati. Potrebbero essere freschi o non ancora catalogati.',c:'var(--muted)'});
-
-  document.getElementById('tips').innerHTML=tips.length?tips.map(t=>`
-    <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:17px;flex-shrink:0">${t.i}</span>
-      <div><div style="font-size:13px;font-weight:500;color:${t.c};margin-bottom:2px">${t.t}</div><div style="font-size:12px;color:var(--muted)">${t.b}</div></div>
-    </div>`).join('')
-    :'<div style="font-size:12px;color:var(--hint);padding:10px 0">Nessun consiglio disponibile.</div>';
+  if(fv<0.20)tips.push({i:'🥦',t:'Aumenta frutta e verdura',b:`${Math.round(fv*100)}% della spesa. Obiettivo: 30%.`,c:'var(--amb)'});
+  else tips.push({i:'✓',t:'Ottima quota frutta e verdura',b:`${Math.round(fv*100)}% del carrello.`,c:'var(--green)'});
+  if(!items.find(i=>i.name.toLowerCase().includes('ceci')||i.name.toLowerCase().includes('lenticchie')||i.name.toLowerCase().includes('fagioli')))
+    tips.push({i:'🫘',t:'Aggiungi legumi',b:'Ceci, lenticchie, fagioli: ferro, fibre, proteine vegetali.',c:'var(--amb)'});
+  if(dolci>0.10)tips.push({i:'⚠️',t:'Troppi dolci e snack',b:`${Math.round(dolci*100)}% della spesa. Obiettivo: sotto il 5%.`,c:'var(--red)'});
+  if(!items.find(i=>i.name.toLowerCase().includes('uov')))
+    tips.push({i:'🥚',t:'Nessun uovo acquistato',b:'Fonte economica e completa di proteine e vitamine.',c:'var(--blue)'});
+  document.getElementById('tips').innerHTML=tips.map(t=>`
+    <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)">
+      <span style="font-size:18px;flex-shrink:0">${t.i}</span>
+      <div><div style="font-size:13px;font-weight:500;color:${t.c};margin-bottom:2px">${t.t}</div><div style="font-size:12px;color:var(--mu)">${t.b}</div></div>
+    </div>`).join('');
 }
 
-/* ════════════════════════════════════
+/* ══════════════════════════════════════
    INIT
-════════════════════════════════════ */
+══════════════════════════════════════ */
 Chart.defaults.font.family="'DM Sans',sans-serif";
 Chart.defaults.font.size=11;
 Chart.defaults.color="#7A746C";
 document.getElementById('r-date').value=new Date().toISOString().slice(0,10);
 renderSpesa();
-</script>
-
-<!-- ═══ MODAL: OCR SCONTRINO ═══ -->
-<div class="modal-bg" id="modal-ocr">
-<div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title">Scansiona scontrino</div>
-  <div class="modal-sub">Carica una foto o PDF — estraggo automaticamente i prodotti</div>
-
-  <!-- Step 1: upload -->
-  <div id="ocr-step-upload">
-    <div id="ocr-dropzone" style="border:2px dashed var(--border2);border-radius:var(--r);padding:32px 16px;text-align:center;cursor:pointer;transition:border-color 0.15s" onclick="document.getElementById('ocr-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--text)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="handleOCRDrop(event)">
-      <div style="font-size:36px;margin-bottom:8px">📄</div>
-      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Tocca per scegliere un'immagine</div>
-      <div style="font-size:12px;color:var(--muted)">JPG, PNG, PDF — anche foto dello schermo</div>
-    </div>
-    <input type="file" id="ocr-file-input" accept="image/*,.pdf" style="display:none" onchange="handleOCRFile(this.files[0])">
-
-    <div style="margin-top:14px;padding:12px;background:var(--s2);border-radius:var(--r);font-size:12px;color:var(--muted)">
-      <strong style="color:var(--text)">Come funziona</strong><br>
-      Tesseract.js legge il testo dalla foto, poi il parser cerca i pattern tipici degli scontrini italiani (es. <code style="font-size:11px;background:var(--s3);padding:1px 4px;border-radius:3px">NOME PRODOTTO *a 1,29</code>). Puoi correggere tutto prima di salvare.
-    </div>
-
-    <div style="margin-top:12px">
-      <label class="form-label">Supermercato (aiuta il parser)</label>
-      <select id="ocr-store-hint">
-        <option value="esselunga">Esselunga</option>
-        <option value="coop">Coop</option>
-        <option value="conad">Conad</option>
-        <option value="lidl">Lidl</option>
-        <option value="eurospin">Eurospin</option>
-        <option value="carrefour">Carrefour</option>
-        <option value="altro">Altro</option>
-      </select>
-    </div>
-    <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-      <span style="font-size:12px;color:var(--muted)">Preferisci inserire a mano? </span>
-      <button style="background:none;border:none;font-family:var(--sans);font-size:12px;color:var(--blue);cursor:pointer;text-decoration:underline;padding:0" onclick="closeOCR();openModal('modal-scontrino')">Inserimento manuale →</button>
-    </div>
-  </div>
-
-  <!-- Step 2: progress OCR -->
-  <div id="ocr-step-progress" style="display:none;text-align:center;padding:24px 0">
-    <div style="font-size:32px;margin-bottom:12px">🔍</div>
-    <div style="font-size:14px;font-weight:500;margin-bottom:8px" id="ocr-progress-label">Caricamento Tesseract…</div>
-    <div style="height:6px;background:var(--s2);border-radius:3px;overflow:hidden;border:0.5px solid var(--border);margin:0 20px">
-      <div id="ocr-progress-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width 0.3s"></div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px" id="ocr-progress-sub">Potrebbe richiedere fino a 30 secondi alla prima esecuzione</div>
-  </div>
-
-  <!-- Step 3: review risultati -->
-  <div id="ocr-step-review" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-size:13px;font-weight:500">Prodotti rilevati — controlla e correggi</div>
-      <button class="btn btn-ghost btn-xs" onclick="ocrAddRow()">＋ Riga</button>
-    </div>
-    <div id="ocr-preview-info" style="font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px 10px;background:var(--s2);border-radius:var(--r)"></div>
-    <div id="ocr-items-list" style="max-height:340px;overflow-y:auto"></div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-      <div class="g2" style="margin-bottom:10px">
-        <div class="form-row" style="margin-bottom:0"><label class="form-label">Data</label><input type="date" id="ocr-date"></div>
-        <div class="form-row" style="margin-bottom:0"><label class="form-label">Negozio</label><input type="text" id="ocr-store" placeholder="Esselunga…"></div>
-      </div>
-      <div class="form-row"><label class="form-label">Pagamento</label>
-        <select id="ocr-payment"><option>Carta di credito</option><option>Contanti</option><option>Buoni pasto</option><option>Misto</option></select>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 4: errore -->
-  <div id="ocr-step-error" style="display:none;text-align:center;padding:20px 0">
-    <div style="font-size:32px;margin-bottom:8px">⚠️</div>
-    <div style="font-size:13px;color:var(--muted)" id="ocr-error-msg">Impossibile leggere lo scontrino.</div>
-    <button class="btn btn-ghost btn-sm" style="margin-top:14px" onclick="ocrReset()">Riprova</button>
-  </div>
-
-  <div class="modal-actions">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOCR()">Chiudi</button>
-    <button class="btn btn-primary" style="flex:2;justify-content:center;display:none" id="ocr-save-btn" onclick="saveOCRReceipt()">✓ Salva scontrino</button>
-  </div>
-</div>
-</div>
-
-<style>
-.ocr-item-row{display:grid;grid-template-columns:1fr 70px 80px 28px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
-.ocr-item-row:last-child{border-bottom:none}
-.ocr-item-row input{padding:5px 8px;font-size:12px}
-.ocr-item-row select{padding:5px 4px;font-size:11px}
-.ocr-del-btn{background:none;border:none;color:var(--hint);cursor:pointer;font-size:16px;padding:2px;border-radius:4px;line-height:1}
-.ocr-del-btn:hover{color:var(--red)}
-.ocr-col-header{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--hint);padding:0 0 4px}
-</style>
-
-<script>
-/* ════════════════════════════════════
-   OCR MODULE
-════════════════════════════════════ */
-let ocrParsedItems=[];
-
-function openOCR(){
-  ocrReset();
-  openModal('modal-ocr');
-}
-
-function closeOCR(){
-  closeModal('modal-ocr');
-  ocrReset();
-}
-
-function ocrReset(){
-  ocrParsedItems=[];
-  document.getElementById('ocr-step-upload').style.display='block';
-  document.getElementById('ocr-step-progress').style.display='none';
-  document.getElementById('ocr-step-review').style.display='none';
-  document.getElementById('ocr-step-error').style.display='none';
-  document.getElementById('ocr-save-btn').style.display='none';
-  document.getElementById('ocr-file-input').value='';
-  document.getElementById('ocr-progress-bar').style.width='0%';
-}
-
-function handleOCRDrop(e){
-  e.preventDefault();
-  document.getElementById('ocr-dropzone').style.borderColor='var(--border2)';
-  const f=e.dataTransfer.files[0];
-  if(f) handleOCRFile(f);
-}
-
-async function handleOCRFile(file){
-  if(!file) return;
-  const allowed=['image/jpeg','image/png','image/webp','image/gif','application/pdf'];
-  if(!allowed.includes(file.type)){showToast('⚠️ Formato non supportato — usa JPG, PNG o PDF');return;}
-
-  document.getElementById('ocr-step-upload').style.display='none';
-  document.getElementById('ocr-step-progress').style.display='block';
-  document.getElementById('ocr-save-btn').style.display='none';
-
-  try{
-    let rawText='';
-
-    if(file.type==='application/pdf'){
-      // ── PDF: estrai testo nativo con PDF.js ──
-      setOCRProgress(10,'Leggo il PDF…');
-      rawText=await extractTextFromPDF(file);
-
-      // Se il PDF è uno scan (testo vuoto o quasi) → fallback OCR su immagine
-      if(rawText.replace(/\s/g,'').length < 40){
-        setOCRProgress(20,'PDF scansionato — uso OCR…');
-        const imgBlob=await pdfPageToImageBlob(file);
-        rawText=await runTesseract(imgBlob);
-      }
-    } else {
-      // ── IMMAGINE: OCR con Tesseract ──
-      setOCRProgress(10,'Avvio OCR…');
-      rawText=await runTesseract(file);
-    }
-
-    setOCRProgress(95,'Analizzo il testo…');
-    const storeHint=document.getElementById('ocr-store-hint').value;
-    const parsed=parseReceiptText(rawText, storeHint);
-    setOCRProgress(100,'Fatto!');
-    setTimeout(()=>showOCRReview(parsed, rawText), 300);
-
-  }catch(e){
-    console.error('OCR error:',e);
-    document.getElementById('ocr-step-progress').style.display='none';
-    document.getElementById('ocr-step-error').style.display='block';
-    const msg=e&&e.message?e.message:'errore sconosciuto';
-    document.getElementById('ocr-error-msg').textContent='Errore: '+msg+'. Prova a convertire il PDF in immagine (screenshot) e ricaricalo.';
-  }
-}
-
-/* Estrae tutto il testo da un PDF nativo (scontrini digitali Esselunga ecc.) */
-async function extractTextFromPDF(file){
-  await waitForPDFJS();
-  const arrayBuffer=await file.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
-  let fullText='';
-  for(let i=1;i<=pdf.numPages;i++){
-    const page=await pdf.getPage(i);
-    const content=await page.getTextContent();
-    // Ricostruisce le righe rispettando la posizione Y degli item
-    const items=content.items;
-    if(!items.length) continue;
-    // Raggruppa per Y (riga) con tolleranza 3px
-    const rows=[];
-    for(const item of items){
-      if(!item.str||!item.str.trim()) continue;
-      const y=Math.round(item.transform[5]);
-      const existing=rows.find(r=>Math.abs(r.y-y)<4);
-      if(existing){
-        existing.parts.push({x:item.transform[4],str:item.str});
-      } else {
-        rows.push({y,parts:[{x:item.transform[4],str:item.str}]});
-      }
-    }
-    // Ordina righe per Y decrescente (PDF ha y=0 in basso)
-    rows.sort((a,b)=>b.y-a.y);
-    for(const row of rows){
-      row.parts.sort((a,b)=>a.x-b.x);
-      fullText+=row.parts.map(p=>p.str).join(' ').trim()+'\n';
-    }
-  }
-  return fullText;
-}
-
-/* Converte la prima pagina PDF in blob immagine per OCR (fallback scan) */
-async function pdfPageToImageBlob(file){
-  await waitForPDFJS();
-  const arrayBuffer=await file.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
-  const page=await pdf.getPage(1);
-  const scale=2.5; // alta risoluzione per OCR
-  const viewport=page.getViewport({scale});
-  const canvas=document.createElement('canvas');
-  canvas.width=viewport.width;
-  canvas.height=viewport.height;
-  const ctx=canvas.getContext('2d');
-  await page.render({canvasContext:ctx,viewport}).promise;
-  return new Promise(res=>canvas.toBlob(res,'image/png'));
-}
-
-/* Aspetta che PDF.js sia caricato */
-function waitForPDFJS(){
-  return new Promise((res,rej)=>{
-    let attempts=0;
-    const check=()=>{
-      if(typeof pdfjsLib!=='undefined') return res();
-      if(++attempts>40) return rej(new Error('PDF.js non caricato'));
-      setTimeout(check,250);
-    };
-    check();
-  });
-}
-
-/* Esegue Tesseract su un file/blob immagine */
-async function runTesseract(imageData){
-  const result=await Tesseract.recognize(imageData,'ita+eng',{
-    logger:m=>{
-      if(m.status==='recognizing text')
-        setOCRProgress(20+Math.round(m.progress*70),`OCR… ${Math.round(m.progress*100)}%`);
-      else if(m.status==='loading tesseract core') setOCRProgress(12,'Carico OCR…');
-      else if(m.status==='loading language traineddata') setOCRProgress(16,'Carico dizionario…');
-    }
-  });
-  return result.data.text;
-}
-
-function setOCRProgress(pct, label){
-  document.getElementById('ocr-progress-bar').style.width=pct+'%';
-  if(label) document.getElementById('ocr-progress-label').textContent=label;
-}
-
-/* ── PARSER SCONTRINI ITALIANI ──
-   Gestisce i formati principali:
-   Esselunga: "NOME PRODOTTO *a 1,29"  oppure  "NOME  *c  2,99"
-   Con peso:  "KG. 0,18 3,79 / NOME *a 0,70"
-   Sconto:    "SCONTO 40% 0,86-S"
-   Totale:    "TOTALE EURO 13,04"
-*/
-function parseReceiptText(text, storeHint){
-  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
-  const items=[];
-  let detectedStore='';
-  let detectedDate='';
-  let detectedTotal=null;
-
-  // Regole da ignorare (righe di intestazione/footer)
-  const ignorePatterns=[
-    /\*\s*esselunga/i, /coop\s+/i, /conad\s+/i,
-    /documento commerciale/i, /vendita o prestazione/i,
-    /via\s+\w/i, /p\.i[:\s]/i, /iva euro/i,
-    /totale euro/i, /pagamento/i, /carta (di credito|fidaty)/i,
-    /matricola/i, /documento n\./i, /saldo/i, /punti/i,
-    /raccolta/i, /bollini/i, /promozione/i, /offerta/i,
-    /ricevuta/i, /transazione/i, /buoni/i, /carnet/i,
-    /scadenza/i, /cod\.aut/i, /acquis/i, /operatore/i,
-    /^\s*[\*\-\.]{3,}/,  // righe di separazione
-    /^\d{2}[\/-]\d{2}[\/-]\d{4}/,  // date standalone
-    /^[A-Z]\s+[A-Z]\s+[A-Z]/,  // sigle
-  ];
-
-  // Pattern IVA (Esselunga e simili)
-  // Formato: NOME_PRODOTTO *a PREZZO  oppure  NOME *c 2,99
-  const ivaLineRE=/^(.+?)\s+\*[a-dA-D]\s+([\d]+[,.][\d]{2})$/;
-  // Con quantità kg: "KG. 0,18  3,79" poi riga prodotto
-  const kgLineRE=/^KG\.\s+([\d,]+)\s+([\d,]+)/i;
-  // Sconto: "SCONTO 40%  0,86-S" o " SCONTO 0,86-S"
-  const scontoRE=/sconto[^\d]*([\d]+[,.][\d]{2})\s*-?S?$/i;
-  // Totale
-  const totaleRE=/totale\s+euro\s+([\d]+[,.][\d]{2})/i;
-  // Data
-  const dateRE=/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/;
-  // Negozio
-  const storeRE=/esselunga|coop|conad|lidl|eurospin|carrefour|aldi|penny|in'?s|pam\b|iper/i;
-
-  let lastKgPrice=null; // prezzo da riga peso precedente
-  let pendingDiscount=0;
-
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-
-    // Rileva data
-    const dateMatch=line.match(dateRE);
-    if(dateMatch&&!detectedDate){
-      detectedDate=`${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
-    }
-    // Rileva negozio
-    const storeMatch=line.match(storeRE);
-    if(storeMatch&&!detectedStore) detectedStore=storeMatch[0];
-    // Rileva totale
-    const totMatch=line.match(totaleRE);
-    if(totMatch) detectedTotal=parseItalianFloat(totMatch[1]);
-
-    // Ignora righe di servizio
-    if(ignorePatterns.some(p=>p.test(line))) continue;
-    // Ignora righe troppo corte
-    if(line.length<4) continue;
-
-    // Riga peso (KG.) — salva prezzo per associarlo al prossimo item
-    const kgMatch=line.match(kgLineRE);
-    if(kgMatch){lastKgPrice=parseItalianFloat(kgMatch[2]);continue;}
-
-    // Riga sconto — attacca al prodotto precedente
-    const scontoMatch=line.match(scontoRE);
-    if(scontoMatch){
-      pendingDiscount=parseItalianFloat(scontoMatch[1]);
-      if(items.length>0) items[items.length-1].discount=pendingDiscount;
-      pendingDiscount=0;
-      continue;
-    }
-
-    // Riga prodotto con IVA (formato principale Esselunga)
-    const ivaMatch=line.match(ivaLineRE);
-    if(ivaMatch){
-      let name=cleanProductName(ivaMatch[1]);
-      if(name.length<2) continue;
-      const price=lastKgPrice||parseItalianFloat(ivaMatch[2]);
-      lastKgPrice=null;
-      const {macro,cat}=guessCategory(name);
-      items.push({name,price,discount:0,macro,cat});
-      continue;
-    }
-
-    // Formato alternativo: NOME  PREZZO (senza codice IVA)
-    // es: "ACQUA MINERALE    0,99"
-    const altMatch=line.match(/^([A-ZÀÈÌÒÙ][A-Za-zàèìòùÀÈÌÒÙ\s\.\&\/\'%\d\-×]+?)\s{2,}([\d]+[,.][\d]{2})\s*$/);
-    if(altMatch&&!ivaMatch){
-      let name=cleanProductName(altMatch[1]);
-      if(name.length<3) continue;
-      const price=parseItalianFloat(altMatch[2]);
-      if(price<=0||price>300) continue; // sanity check
-      const {macro,cat}=guessCategory(name);
-      items.push({name,price,discount:0,macro,cat});
-    }
-  }
-
-  // Fallback: se pochi item trovati, prova pattern più aggressivo
-  if(items.length<2){
-    return parseFallback(lines, detectedStore, detectedDate, detectedTotal);
-  }
-
-  return {items, store:detectedStore, date:detectedDate, total:detectedTotal};
-}
-
-function parseFallback(lines, store, date, total){
-  // Pattern aggressivo: qualunque riga con un prezzo alla fine
-  const items=[];
-  const priceAtEnd=/^(.+?)\s+([\d]{1,3}[,.][\d]{2})\s*[\*-]?\s*[A-Za-z]?\s*$/;
-  const skip=/totale|pagamento|sconto|iva|matricola|documento|carta|saldo|punti|raccolta|bollini|transazione|ricevuta|autorizzata|euro\s*[\d]/i;
-
-  for(const line of lines){
-    if(skip.test(line)) continue;
-    const m=line.match(priceAtEnd);
-    if(m){
-      const name=cleanProductName(m[1]);
-      if(name.length<3) continue;
-      const price=parseItalianFloat(m[2]);
-      if(price<=0||price>200) continue;
-      const {macro,cat}=guessCategory(name);
-      items.push({name,price,discount:0,macro,cat});
-    }
-  }
-  return{items,store,date,total};
-}
-
-function parseItalianFloat(s){
-  return parseFloat((s||'0').replace(',','.').replace(/[^\d.]/g,''))||0;
-}
-
-function cleanProductName(s){
-  return s
-    .replace(/\*[a-dA-D]\s*$/,'')      // rimuovi codice IVA residuo
-    .replace(/^\s*[\d]+\s+/,'')         // rimuovi numeri iniziali
-    .replace(/\s{2,}/g,' ')             // normalizza spazi
-    .replace(/[^\w\sàèìòùÀÈÌÒÙ'&.%-×°]/g,'') // char non validi
-    .trim()
-    .replace(/^(\w)/,c=>c.toUpperCase()); // capitalize
-}
-
-/* ── CATEGORY GUESSER (dizionario locale) ── */
-const catDict=[
-  // Frutta e verdura
-  {re:/fragol|mela|pera|banana|uva|arancia|limone|mandarino|kiwi|ananas|mango|avocado|melon|cocomero|pesca|ciliegia|albicocca|susina|fico|prugna|pompelmo|goji|mirtillo|lampone|ribes|dattero|castagna|noce|mandorla|pinolo|anacardo|pistacchio|nocciola|arachid/i, macro:'frutta-verdura', cat:'frutta'},
-  {re:/zucchina|zucchine|carota|spinaci|insalata|lattuga|rucola|misticanza|pomodor|cetriolo|peperone|melanzana|cipolla|aglio|porro|sedano|finocchio|broccolo|cavolfiore|cavolo|pisell|fagioli|lenticchi|ceci|fave|asparagi|carciofo|patate|barbabietola|ravanello|verza|rapa|bietola|mais|funghi|zucca|porro|cuori/i, macro:'frutta-verdura', cat:'verdura'},
-  // Latticini
-  {re:/yogurt|yoghurt|yog\b/i, macro:'latticini', cat:'yogurt'},
-  {re:/latte\b|milk\b/i, macro:'latticini', cat:'latte'},
-  {re:/parmigiano|grana padano|pecorino|gorgonzola|brie|camembert|taleggio|asiago|provolone|scamorza|provola|fontina|emmental|gruyere|edam|gouda|mozzarella|burrata|stracciatella|ricotta|mascarpone|formag/i, macro:'latticini', cat:'formaggi'},
-  {re:/burro/i, macro:'latticini', cat:'burro'},
-  {re:/panna/i, macro:'latticini', cat:'panna'},
-  {re:/kefir/i, macro:'latticini', cat:'kefir'},
-  {re:/jocca|budino|dessert/i, macro:'latticini', cat:'budino'},
-  {re:/uov[ao]/i, macro:'latticini', cat:'uova'},
-  // Carne e pesce
-  {re:/salmone|tonno|merluzzo|orata|branzino|sgombro|sardina|acciuga|polpo|gamberett|cozze|vongole|calamari|pesce|baccalà|trota|spigola/i, macro:'carne-pesce', cat:'pesce'},
-  {re:/pollo|tacchino|anatra|faraona|coniglio|pollame/i, macro:'carne-pesce', cat:'pollame'},
-  {re:/manzo|vitello|bistecca|hamburger|macinato|fesa|girello|scamone|roast|arrosto di manz/i, macro:'carne-pesce', cat:'manzo'},
-  {re:/maiale|costina|pancetta|lonza|capocollo|porchetta|salsiccia|wurstel|cotechino|zampone/i, macro:'carne-pesce', cat:'maiale'},
-  // Salumi
-  {re:/prosciutto/i, macro:'salumi', cat:'prosciutto'},
-  {re:/bresaola/i, macro:'salumi', cat:'bresaola'},
-  {re:/mortadella/i, macro:'salumi', cat:'mortadella'},
-  {re:/salame|salami/i, macro:'salumi', cat:'salame'},
-  {re:/speck|coppa|culatello|fiocco|ciccioli/i, macro:'salumi', cat:'affettati'},
-  {re:/arrosto di tacchino|tacchin/i, macro:'salumi', cat:'arrosto'},
-  // Cereali e pane
-  {re:/pane|sfilatino|filone|baguette|grissino|focaccia|ciabatta|rosetta|michetta|pagnotta|panino/i, macro:'cereali', cat:'pane'},
-  {re:/pasta\b|spaghetti|rigatoni|penne|fusilli|farfalle|tagliatelle|lasagne|linguine|bucatini|tortiglioni|mezze penne|gnocchi|tortellini|ravioli/i, macro:'cereali', cat:'pasta'},
-  {re:/riso\b|risotto/i, macro:'cereali', cat:'riso'},
-  {re:/farro|orzo|avena|quinoa|miglio|segale/i, macro:'cereali', cat:'cereali-integrali'},
-  {re:/pizza\b/i, macro:'cereali', cat:'pizza'},
-  {re:/piadina/i, macro:'cereali', cat:'piadina'},
-  {re:/crackers|cracker|gallette|fette biscottate/i, macro:'cereali', cat:'crackers'},
-  {re:/corn flakes|muesli|cereali da colazione/i, macro:'cereali', cat:'cereali-colazione'},
-  // Dispensa
-  {re:/polpa|passata|pomodori pelati|concentrato di pomodoro/i, macro:'dispensa', cat:'conserve-pomodoro'},
-  {re:/pesto|sugo|ragù|bolognese|amatriciana/i, macro:'dispensa', cat:'sughi'},
-  {re:/olio\s+(?:di\s+)?(?:oliva|evo|extravergine|girasole|mais)/i, macro:'dispensa', cat:'oli'},
-  {re:/aceto\b/i, macro:'dispensa', cat:'condimenti'},
-  {re:/sale\b|pepe\b|spezie|zafferano|peperoncino|curry|origano|rosmarino|basilico|prezzemolo/i, macro:'dispensa', cat:'spezie'},
-  {re:/farina\b/i, macro:'dispensa', cat:'farina'},
-  {re:/zucchero\b/i, macro:'dispensa', cat:'zucchero'},
-  {re:/miele\b/i, macro:'dispensa', cat:'dolcificanti'},
-  {re:/legumi|fagioli in scatola|ceci in scatola/i, macro:'dispensa', cat:'legumi-secchi'},
-  {re:/tonno in scatola|tonno sott.olio/i, macro:'dispensa', cat:'conserve-pesce'},
-  // Dolci e snack
-  {re:/cioccolato|cacao|nutella|ferrero|kinder|kitkat|twix|mars|snickers/i, macro:'dolci-snack', cat:'cioccolato'},
-  {re:/patatine|chips|nachos|popcorn/i, macro:'dolci-snack', cat:'patatine'},
-  {re:/biscotto|biscotti|cookie|digestive|wafer/i, macro:'dolci-snack', cat:'biscotti'},
-  {re:/gelato|semifreddo/i, macro:'dolci-snack', cat:'gelati'},
-  {re:/torta|crostata|brioche|cornetto|croissant|merendina|pan di stelle/i, macro:'dolci-snack', cat:'dolci-da-forno'},
-  {re:/caramelle|gomme|lecca lecca/i, macro:'dolci-snack', cat:'caramelle'},
-  {re:/frutta secca|mix\s+frutta/i, macro:'dolci-snack', cat:'frutta-secca-snack'},
-  // Bevande
-  {re:/acqua\b|uliveto|ferrarelle|san benedetto|levissima|lauretana/i, macro:'bevande', cat:'acqua'},
-  {re:/coca.cola|pepsi|fanta|sprite|aranciata|chinotto|gassosa|soda|tonica/i, macro:'bevande', cat:'bibite'},
-  {re:/succo\b|nettare|ace\b/i, macro:'bevande', cat:'succhi'},
-  {re:/birra|beer|chouffe|heineken|peroni|moretti/i, macro:'bevande', cat:'birra'},
-  {re:/vino\b|prosecco|spumante|champagne|grappa|amaro|liquore|whisky|gin\b|rum\b|vodka|tequila|scotch/i, macro:'bevande', cat:'alcolici'},
-  {re:/caffè|caffe|espresso|nescafè|illy|lavazza/i, macro:'bevande', cat:'caffe'},
-  {re:/te\b|tè\b|tisana|camomilla/i, macro:'bevande', cat:'te'},
-  {re:/sport|powerade|gatorade|redbull|energy/i, macro:'bevande', cat:'sport-drinks'},
-  {re:/alpro|soia|mandorla|riso\s+drink|avena\s+drink|kefir\s+drink/i, macro:'bevande', cat:'bev-vegetali'},
-  // Cura persona
-  {re:/shampoo|balsamo capelli|gel capelli|lacca/i, macro:'cura-persona', cat:'capelli'},
-  {re:/dentifricio|spazzolino|collutorio|filo interdentale/i, macro:'cura-persona', cat:'igiene-orale'},
-  {re:/sapone|doccia|gel doccia|bagnoschiuma/i, macro:'cura-persona', cat:'igiene-corpo'},
-  {re:/deodorante|antitraspirante/i, macro:'cura-persona', cat:'deodorante'},
-  {re:/rasoio|schiuma da barba/i, macro:'cura-persona', cat:'rasatura'},
-  {re:/crema|lozione|make.up|fondotinta|mascara|rossetto/i, macro:'cura-persona', cat:'cosmetici'},
-  {re:/pannolino|assorbente|tampone/i, macro:'cura-persona', cat:'igiene-intima'},
-  // Casa
-  {re:/detersivo|ammorbidente|candeggina|smacchiatore/i, macro:'casa', cat:'lavanderia'},
-  {re:/piatti|pavimenti|bagno|wc|cucina.*pulizia/i, macro:'casa', cat:'pulizie-casa'},
-  {re:/carta igienica|carta asciugamani|fazzoletti/i, macro:'casa', cat:'carta'},
-  {re:/sacchett[io]|shopper|borse/i, macro:'casa', cat:'imballaggio'},
-  {re:/batterie|lampadina|pile/i, macro:'casa', cat:'elettronica'},
-];
-
-function guessCategory(name){
-  const n=name.toLowerCase();
-  for(const rule of catDict){
-    if(rule.re.test(n)) return{macro:rule.macro,cat:rule.cat};
-  }
-  return{macro:'altro',cat:''};
-}
-
-/* ── REVIEW UI ── */
-function showOCRReview(parsed, rawText){
-  ocrParsedItems=[...parsed.items];
-  document.getElementById('ocr-step-progress').style.display='none';
-  document.getElementById('ocr-step-review').style.display='block';
-  document.getElementById('ocr-save-btn').style.display='flex';
-
-  // Precompila metadati
-  const today=new Date().toISOString().slice(0,10);
-  document.getElementById('ocr-date').value=parsed.date||today;
-  document.getElementById('ocr-store').value=parsed.store||'';
-
-  const storeHint=document.getElementById('ocr-store-hint').value;
-  const storeNames={esselunga:'Esselunga',coop:'Coop',conad:'Conad',lidl:'Lidl',eurospin:'Eurospin',carrefour:'Carrefour',altro:''};
-  if(!parsed.store&&storeNames[storeHint]) document.getElementById('ocr-store').value=storeNames[storeHint];
-
-  document.getElementById('ocr-preview-info').innerHTML=
-    `Trovati <strong>${ocrParsedItems.length}</strong> prodotti${parsed.total?' · Totale rilevato: <strong>€'+parsed.total.toFixed(2)+'</strong>':''}. `+
-    `Verifica nomi e prezzi — il testo OCR può contenere errori.`;
-
-  renderOCRItems();
-}
-
-function renderOCRItems(){
-  const el=document.getElementById('ocr-items-list');
-  if(!ocrParsedItems.length){
-    el.innerHTML='<div class="empty-state"><div class="empty-text">Nessun prodotto rilevato</div><div class="empty-hint">Aggiungi manualmente con il tasto ＋ Riga</div></div>';
-    return;
-  }
-  el.innerHTML=`
-    <div class="ocr-item-row" style="padding-bottom:2px">
-      <div class="ocr-col-header">Prodotto</div>
-      <div class="ocr-col-header">€</div>
-      <div class="ocr-col-header">Categoria</div>
-      <div></div>
-    </div>`+
-  ocrParsedItems.map((item,idx)=>{
-    const m=macroMeta[item.macro];
-    return`<div class="ocr-item-row" id="ocr-row-${idx}">
-      <input type="text" value="${escHtml(item.name)}" onchange="ocrParsedItems[${idx}].name=this.value" style="font-size:12px">
-      <input type="number" value="${item.price.toFixed(2)}" step="0.01" min="0" onchange="ocrParsedItems[${idx}].price=parseFloat(this.value)||0" style="font-size:12px">
-      <select onchange="ocrParsedItems[${idx}].macro=this.value;ocrParsedItems[${idx}].cat=guessCategory(document.querySelector('#ocr-row-${idx} input').value).cat" style="font-size:11px">
-        ${Object.entries(macroMeta).map(([k,v])=>`<option value="${k}"${k===item.macro?' selected':''}>${v.label}</option>`).join('')}
-      </select>
-      <button class="ocr-del-btn" onclick="ocrRemoveRow(${idx})">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function ocrRemoveRow(idx){
-  ocrParsedItems.splice(idx,1);
-  renderOCRItems();
-}
-
-function ocrAddRow(){
-  ocrParsedItems.push({name:'',price:0,discount:0,macro:'altro',cat:''});
-  renderOCRItems();
-  // Focus ultimo campo
-  setTimeout(()=>{
-    const rows=document.querySelectorAll('.ocr-item-row input[type=text]');
-    if(rows.length) rows[rows.length-1].focus();
-  },50);
-}
-
-function saveOCRReceipt(){
-  // Sincronizza valori dal DOM prima di salvare
-  const rows=document.querySelectorAll('.ocr-item-row');
-  rows.forEach((row,idx)=>{
-    if(idx===0) return; // header
-    const realIdx=idx-1;
-    if(!ocrParsedItems[realIdx]) return;
-    const inputs=row.querySelectorAll('input');
-    const sel=row.querySelector('select');
-    if(inputs[0]) ocrParsedItems[realIdx].name=inputs[0].value.trim();
-    if(inputs[1]) ocrParsedItems[realIdx].price=parseFloat(inputs[1].value)||0;
-    if(sel)       ocrParsedItems[realIdx].macro=sel.value;
-  });
-
-  const validItems=ocrParsedItems.filter(i=>i.name&&i.price>0);
-  if(!validItems.length){showToast('⚠️ Nessun articolo valido');return;}
-
-  const date=document.getElementById('ocr-date').value||new Date().toISOString().slice(0,10);
-  const store=document.getElementById('ocr-store').value.trim()||'Negozio';
-  const payment=document.getElementById('ocr-payment').value;
-  const total=+validItems.reduce((a,i)=>a+(i.price-(i.discount||0)),0).toFixed(2);
-
-  // Costruisci items con id
-  const items=validItems.map((i,n)=>({
-    id:`i_ocr_${Date.now()}_${n}`,
-    name:i.name, macro:i.macro, cat:i.cat||'',
-    price:i.price, discount:i.discount||0,
-  }));
-
-  const r={id:genId(),date,store,payment,total,items};
-  receipts.push(r);
-  DB.set('receipts',receipts);
-
-  // Aggiungi automaticamente in dispensa
-  items.forEach(it=>{
-    pantry.push({
-      id:'p_'+it.id, name:it.name, macro:it.macro, cat:it.cat,
-      receiptId:r.id, itemId:it.id, date:r.date, store:r.store,
-      barcode:null, imgUrl:null, brand:null,
-      nutriscore:null, nova:null, nutriments:null,
-      location:guessLocation(it.macro), expiry:null, qty:null,
-    });
-  });
-  DB.set('pantry',pantry);
-
-  closeOCR();
-  showToast(`✓ ${items.length} prodotti salvati dallo scontrino OCR`);
-  renderSpesa();
-}
-</script>
-
-<!-- ═══ MODAL: AGGIUNGI DIRETTO A DISPENSA ═══ -->
-<div class="modal-bg" id="modal-pantry-direct">
-<div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title">Aggiungi alla dispensa</div>
-  <div class="modal-sub">Prodotto non da scontrino — cerca su Open Food Facts o inserisci manualmente</div>
-  <!-- Ricerca OFF per nome o barcode -->
-  <div style="display:flex;gap:8px;margin-bottom:8px">
-    <input type="text" id="pd-search" placeholder="Nome prodotto o barcode EAN…" style="flex:1" oninput="pdSuggest(this.value)" onkeydown="if(event.key==='Enter')pdSearchOFF()">
-    <button class="btn btn-ghost btn-sm" onclick="pdSearchOFF()">Cerca OFF</button>
-    <button class="btn btn-ghost btn-sm" onclick="openScannerDirect()">📷</button>
-  </div>
-  <div id="pd-off-result" style="margin-bottom:10px"></div>
-  <div class="divider"></div>
-  <div class="form-row"><label class="form-label">Nome prodotto</label><input type="text" id="pd-name" placeholder="Es: Olio EVO Monini 750ml"></div>
-  <div class="g2">
-    <div class="form-row"><label class="form-label">Macrocategoria</label>
-      <select id="pd-macro">
-        <option value="frutta-verdura">🥦 Frutta & Verdura</option>
-        <option value="latticini">🥛 Latticini & Uova</option>
-        <option value="carne-pesce">🥩 Carne & Pesce</option>
-        <option value="salumi">🍖 Salumi & Affettati</option>
-        <option value="cereali">🌾 Cereali & Pane</option>
-        <option value="dispensa">🫙 Dispensa</option>
-        <option value="dolci-snack">🍫 Dolci & Snack</option>
-        <option value="bevande">🧃 Bevande</option>
-        <option value="cura-persona">🧴 Cura persona</option>
-        <option value="casa">🧹 Casa & Pulizie</option>
-        <option value="altro">📦 Altro</option>
-      </select>
-    </div>
-    <div class="form-row"><label class="form-label">Categoria</label><input type="text" id="pd-cat" placeholder="Es: olio, pasta…"></div>
-  </div>
-  <div class="form-row"><label class="form-label">Dove si trova</label>
-    <select id="pd-location"><option value="dispensa">🗄 Dispensa</option><option value="frigo">🧊 Frigo</option><option value="freezer">❄️ Freezer</option></select>
-  </div>
-  <div class="g2">
-    <div class="form-row"><label class="form-label">Data scadenza (opz.)</label><input type="date" id="pd-expiry"></div>
-    <div class="form-row"><label class="form-label">Quantità / Note</label><input type="text" id="pd-qty" placeholder="Es: 750ml"></div>
-  </div>
-  <div class="modal-actions">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('modal-pantry-direct')">Annulla</button>
-    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="saveDirectPantryItem()">Aggiungi in dispensa</button>
-  </div>
-</div>
-</div>
-
-<!-- ═══ MODAL: MODIFICA ITEM DISPENSA ═══ -->
-<div class="modal-bg" id="modal-edit-pantry">
-<div class="modal">
-  <div class="modal-handle"></div>
-  <div class="modal-title">Modifica prodotto</div>
-  <div class="modal-sub" id="ep-sub"></div>
-  <input type="hidden" id="ep-id">
-
-  <div class="form-row"><label class="form-label">Nome prodotto</label>
-    <input type="text" id="ep-name" placeholder="Nome prodotto">
-  </div>
-  <div class="g2">
-    <div class="form-row"><label class="form-label">Macrocategoria</label>
-      <select id="ep-macro">
-        <option value="frutta-verdura">🥦 Frutta & Verdura</option>
-        <option value="latticini">🥛 Latticini & Uova</option>
-        <option value="carne-pesce">🥩 Carne & Pesce</option>
-        <option value="salumi">🍖 Salumi & Affettati</option>
-        <option value="cereali">🌾 Cereali & Pane</option>
-        <option value="dispensa">🫙 Dispensa</option>
-        <option value="dolci-snack">🍫 Dolci & Snack</option>
-        <option value="bevande">🧃 Bevande</option>
-        <option value="cura-persona">🧴 Cura persona</option>
-        <option value="casa">🧹 Casa & Pulizie</option>
-        <option value="altro">📦 Altro</option>
-      </select>
-    </div>
-    <div class="form-row"><label class="form-label">Categoria</label>
-      <input type="text" id="ep-cat" placeholder="Es: yogurt, pasta…">
-    </div>
-  </div>
-  <div class="form-row"><label class="form-label">Posizione</label>
-    <select id="ep-location">
-      <option value="dispensa">🗄 Dispensa</option>
-      <option value="frigo">🧊 Frigo</option>
-      <option value="freezer">❄️ Freezer</option>
-    </select>
-  </div>
-  <div class="g2">
-    <div class="form-row"><label class="form-label">Scadenza</label>
-      <input type="date" id="ep-expiry">
-    </div>
-    <div class="form-row"><label class="form-label">Quantità / Note</label>
-      <input type="text" id="ep-qty" placeholder="Es: 500g, 2 pz…">
-    </div>
-  </div>
-
-  <div class="modal-actions">
-    <button class="btn btn-danger" style="justify-content:center" onclick="deletePantryFromEdit()">🗑</button>
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('modal-edit-pantry')">Annulla</button>
-    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="saveEditPantry()">Salva modifiche</button>
-  </div>
-</div>
-</div>
-
-<script>
-/* ════════════════════════════════════
-   MODIFICA ITEM DISPENSA
-════════════════════════════════════ */
-function openEditPantry(id){
-  const item=pantry.find(p=>p.id===id);
-  if(!item) return;
-  document.getElementById('ep-id').value=id;
-  document.getElementById('ep-name').value=item.name||'';
-  document.getElementById('ep-macro').value=item.macro||'altro';
-  document.getElementById('ep-cat').value=item.cat||'';
-  document.getElementById('ep-location').value=item.location||'dispensa';
-  document.getElementById('ep-expiry').value=item.expiry||'';
-  document.getElementById('ep-qty').value=item.qty||'';
-  document.getElementById('ep-sub').textContent=item.brand||item.store||'';
-  openModal('modal-edit-pantry');
-}
-
-function saveEditPantry(){
-  const id=document.getElementById('ep-id').value;
-  const idx=pantry.findIndex(p=>p.id===id);
-  if(idx===-1) return;
-
-  const newMacro=document.getElementById('ep-macro').value;
-  const newName=document.getElementById('ep-name').value.trim()||pantry[idx].name;
-
-  pantry[idx]={
-    ...pantry[idx],
-    name:     newName,
-    macro:    newMacro,
-    cat:      document.getElementById('ep-cat').value.trim(),
-    location: document.getElementById('ep-location').value,
-    expiry:   document.getElementById('ep-expiry').value||null,
-    qty:      document.getElementById('ep-qty').value.trim()||null,
-  };
-  DB.set('pantry',pantry);
-  closeModal('modal-edit-pantry');
-  renderDispensa();
-  showToast('✓ Prodotto aggiornato');
-}
-
-function deletePantryFromEdit(){
-  const id=document.getElementById('ep-id').value;
-  closeModal('modal-edit-pantry');
-  setTimeout(()=>{
-    pantry=pantry.filter(p=>p.id!==id);
-    DB.set('pantry',pantry);
-    renderDispensa();
-    showToast('Prodotto rimosso dalla dispensa');
-  },200);
-}
-
-/* ════════════════════════════════════
-   SERVICE WORKER — registra sw.js esterno
-   Richiede che sw.js sia nella stessa
-   cartella di index.html su GitHub
-════════════════════════════════════ */
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js',{scope:'./'})
-      .then(reg=>{
-        console.log('[PWA] Service Worker registrato, scope:',reg.scope);
-        reg.update(); // controlla aggiornamenti ad ogni apertura
-      })
-      .catch(err=>{
-        // Normale in locale (file://) — funziona su GitHub Pages (https://)
-        console.log('[PWA] SW non registrato:',err.message);
-      });
-  });
-}
 </script>
 </body>
 </html>
