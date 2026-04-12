@@ -3,11 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+
+<!-- PWA: Manifest, tema, icone -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1A1714">
+<meta name="description" content="Traccia la tua spesa, dispensa e nutrizione">
+
+<!-- iOS: standalone e icona -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="La mia Spesa">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+
+<!-- Android -->
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#F5F2ED">
+
 <title>La mia Spesa</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
@@ -2469,13 +2479,31 @@ function saveEditPantry(){
 function deletePantryFromEdit(){
   const id=document.getElementById('ep-id').value;
   closeModal('modal-edit-pantry');
-  // Piccolo delay per animazione modal
   setTimeout(()=>{
     pantry=pantry.filter(p=>p.id!==id);
     DB.set('pantry',pantry);
     renderDispensa();
     showToast('Prodotto rimosso dalla dispensa');
   },200);
+}
+
+/* ════════════════════════════════════
+   SERVICE WORKER — registra sw.js esterno
+   Richiede che sw.js sia nella stessa
+   cartella di index.html su GitHub
+════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js',{scope:'./'})
+      .then(reg=>{
+        console.log('[PWA] Service Worker registrato, scope:',reg.scope);
+        reg.update(); // controlla aggiornamenti ad ogni apertura
+      })
+      .catch(err=>{
+        // Normale in locale (file://) — funziona su GitHub Pages (https://)
+        console.log('[PWA] SW non registrato:',err.message);
+      });
+  });
 }
 </script>
 </body>
