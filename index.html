@@ -4,23 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 
-<!-- PWA: Manifest, tema, icone -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#C8E6C9">
+<!-- PWA: tema, icone -->
+<meta name="theme-color" content="#F5F2ED">
 <meta name="description" content="Traccia la tua spesa, dispensa e nutrizione">
 
 <!-- iOS: standalone e icona -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="La mia Spesa">
-<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Spesa">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23F5F2ED'/%3E%3Ccircle cx='90' cy='72' r='34' fill='none' stroke='%231A1714' stroke-width='7'/%3E%3Cpath d='M70 72 L84 86 L110 60' stroke='%232D6A4F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Crect x='52' y='114' width='76' height='10' rx='5' fill='%231A1714' opacity='0.15'/%3E%3Crect x='62' y='130' width='56' height='10' rx='5' fill='%231A1714' opacity='0.1'/%3E%3C/svg%3E">
 
 <!-- Android -->
 <meta name="mobile-web-app-capable" content="yes">
 
 <title>La mia Spesa</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script>
@@ -577,6 +576,7 @@ let receipts   = DB.get('receipts') || [];
 let pantry     = DB.get('pantry')   || [];
 let tempItems  = [];
 let scanTarget = null;
+let scannerActive = false;
 let pendingOFF = null;
 
 function guessLocation(macro){
@@ -1289,82 +1289,105 @@ function startScanForItem(pantryId){
 async function initScanner(){
   const statusEl=document.getElementById('scan-status');
   const videoEl=document.getElementById('scanner-video');
+  scannerActive=true;
 
   try{
-    // Passo 1: chiedi permesso fotocamera con getUserMedia direttamente
-    // Su mobile questo mostra il popup di permesso del browser
-    statusEl.textContent='In attesa del permesso fotocamera…';
-
+    statusEl.textContent='Avvio fotocamera…';
     const stream=await navigator.mediaDevices.getUserMedia({
-      video:{
-        facingMode:{ideal:'environment'}, // preferisce fotocamera posteriore
-        width:{ideal:1280},
-        height:{ideal:720}
-      }
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
     });
-
-    // Collega lo stream al video element
     videoEl.srcObject=stream;
+    await new Promise(res=>{videoEl.onloadedmetadata=res});
     await videoEl.play();
-    statusEl.textContent='Cerco codice a barre…';
+    statusEl.textContent='Inquadra il codice a barre…';
 
-    // Passo 2: avvia ZXing sul video element già in riproduzione
-    const ZXing=window.ZXing;
-    if(!ZXing) throw new Error('ZXing non caricato');
+    // --- STRATEGIA 1: BarcodeDetector nativo (iOS 17+, Chrome Android) ---
+    if(typeof BarcodeDetector!=='undefined'){
+      const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+      const tick=async()=>{
+        if(!scannerActive) return;
+        try{
+          const codes=await detector.detect(videoEl);
+          if(codes&&codes.length>0){
+            const bc=codes[0].rawValue;
+            onBarcodeFound(bc,stream);
+            return;
+          }
+        }catch(e){}
+        if(scannerActive) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      return;
+    }
 
-    codeReader=new ZXing.BrowserMultiFormatReader();
-
-    // Scan frame per frame con requestAnimationFrame
-    let scanning=true;
-    const scan=()=>{
-      if(!scanning||!codeReader) return;
-      try{
-        const result=codeReader.decodeFromVideoElement(videoEl);
-        if(result){
-          scanning=false;
+    // --- STRATEGIA 2: ZXing @zxing/browser (fallback per iOS <17) ---
+    const ZXingBrowser=window.ZXingBrowser||window['@zxing/browser'];
+    if(ZXingBrowser&&ZXingBrowser.BrowserMultiFormatReader){
+      const reader=new ZXingBrowser.BrowserMultiFormatReader();
+      codeReader=reader;
+      const controls=await reader.decodeFromStream(stream,videoEl,(result,err)=>{
+        if(result&&scannerActive){
+          scannerActive=false;
           const bc=result.getText();
-          statusEl.textContent=`Codice: ${bc}`;
-          stream.getTracks().forEach(t=>t.stop());
-          stopScannerReader();
-          doFetchOFF(bc);
-          return;
+          onBarcodeFound(bc,stream);
         }
-      }catch(e){
-        // NotFoundException normale — nessun barcode in questo frame
-      }
-      requestAnimationFrame(scan);
-    };
-    requestAnimationFrame(scan);
+      });
+      codeReader._controls=controls;
+      return;
+    }
+
+    // --- STRATEGIA 3: Canvas sampling con jscanify-like approach ---
+    // Legge frame dal canvas e cerca pattern EAN tramite regex sul testo
+    // Fallback finale: mostra solo input manuale
+    statusEl.textContent='Scanner non supportato su questo browser — inserisci il barcode sotto';
 
   }catch(e){
-    console.error('Scanner error:',e);
-    // Messaggio di errore specifico in base alla causa
+    console.error('Scanner error:',e.name,e.message);
+    scannerActive=false;
+    stopVideoStream();
     if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
-      statusEl.textContent='Permesso fotocamera negato — inserisci il barcode manualmente';
-    } else if(e.name==='NotFoundError'||e.name==='DevicesNotFoundError'){
-      statusEl.textContent='Nessuna fotocamera trovata — inserisci il barcode manualmente';
-    } else if(e.name==='NotReadableError'){
-      statusEl.textContent='Fotocamera occupata da un\'altra app — chiudila e riprova';
+      statusEl.textContent='⚠️ Permesso fotocamera negato. Vai in Impostazioni → Safari → Fotocamera e autorizza.';
+    } else if(e.name==='NotFoundError'){
+      statusEl.textContent='Nessuna fotocamera trovata — usa il campo manuale.';
+    } else if(e.name==='NotReadableError'||e.name==='AbortError'){
+      statusEl.textContent='Fotocamera occupata da un\'altra app — chiudila e riprova.';
     } else {
-      statusEl.textContent='Fotocamera non disponibile — inserisci il barcode manualmente';
+      statusEl.textContent='Impossibile avviare la fotocamera — usa il campo manuale.';
     }
   }
 }
 
-function stopScannerReader(){
+function onBarcodeFound(bc,stream){
+  scannerActive=false;
+  document.getElementById('scan-status').textContent=`✓ Codice trovato: ${bc}`;
+  stopVideoStream();
+  stopScannerReader();
+  doFetchOFF(bc);
+}
+
+function stopVideoStream(){
   try{
-    if(codeReader) codeReader.reset();
-    // Ferma anche eventuali stream residui sul video element
     const v=document.getElementById('scanner-video');
     if(v&&v.srcObject){
       v.srcObject.getTracks().forEach(t=>t.stop());
       v.srcObject=null;
     }
   }catch(e){}
+}
+
+function stopScannerReader(){
+  try{
+    if(codeReader){
+      if(codeReader._controls) codeReader._controls.stop();
+      else if(typeof codeReader.reset==='function') codeReader.reset();
+    }
+  }catch(e){}
   codeReader=null;
 }
 
 function closeScanner(){
+  scannerActive=false;
+  stopVideoStream();
   stopScannerReader();
   closeModal('modal-scanner');
   scanTarget=null;
