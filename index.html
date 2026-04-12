@@ -111,14 +111,7 @@ input::placeholder{color:var(--hi)}
 .pi-nutri-cell .nv{font-family:var(--serif);font-size:13px}
 .pi-nutri-cell .nl{font-size:9px;color:var(--mu);text-transform:uppercase;margin-top:1px}
 
-/* ── SCANNER ── */
-.scan-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#000;width:100%;max-width:360px;margin:0 auto;aspect-ratio:1}
-.scan-wrap video{width:100%;height:100%;object-fit:cover;display:block}
-.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.scan-frame{width:200px;height:200px;border:2px solid var(--green);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
-.scan-line{position:absolute;width:180px;height:2px;background:var(--green);opacity:.9;animation:scanline 2s ease-in-out infinite}
-@keyframes scanline{0%,100%{top:calc(50% - 90px)}50%{top:calc(50% + 90px)}}
-.scan-status{text-align:center;font-size:12px;color:var(--mu);margin-top:10px;min-height:36px;line-height:1.4}
+/* scanner: niente video, solo foto */
 
 /* ── MODAL ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center}
@@ -335,26 +328,33 @@ input::placeholder{color:var(--hi)}
 <div class="modal">
   <div class="mhandle"></div>
   <div class="mtitle" id="scan-title">Scansiona prodotto</div>
-  <div class="msub">Punta la fotocamera sul codice a barre</div>
-  <div class="scan-wrap">
-    <video id="scan-video" autoplay playsinline muted></video>
-    <div class="scan-overlay">
-      <div style="position:relative;width:200px;height:200px">
-        <div class="scan-frame"></div>
-        <div class="scan-line"></div>
-      </div>
-    </div>
+  <div class="msub" id="scan-sub">Scatta una foto al codice a barre</div>
+
+  <!-- Preview foto scattata -->
+  <div id="scan-preview-wrap" style="display:none;margin-bottom:12px;text-align:center">
+    <img id="scan-preview-img" style="max-width:100%;max-height:200px;border-radius:var(--r);border:1px solid var(--brd)" alt="">
   </div>
-  <div class="scan-status" id="scan-status">Avvio fotocamera…</div>
-  <div style="margin-top:10px">
-    <div style="font-size:11px;color:var(--mu);text-align:center;margin-bottom:6px">oppure inserisci barcode manualmente</div>
+
+  <!-- Bottone principale: apre fotocamera iOS -->
+  <input type="file" id="scan-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleScanPhoto(this)">
+
+  <button class="btn btn-primary btn-full" style="margin-bottom:10px;font-size:15px" onclick="document.getElementById('scan-file-input').click()">
+    📷 Scatta foto al codice a barre
+  </button>
+
+  <div id="scan-status" style="text-align:center;font-size:12px;color:var(--mu);min-height:20px;margin-bottom:10px"></div>
+
+  <!-- Barcode manuale -->
+  <div style="border-top:1px solid var(--brd);padding-top:12px">
+    <div style="font-size:11px;color:var(--mu);text-align:center;margin-bottom:8px">oppure inserisci il barcode a mano</div>
     <div style="display:flex;gap:8px">
-      <input type="number" id="manual-bc" placeholder="Barcode EAN (es: 8001120982476)" style="flex:1">
+      <input type="number" id="manual-bc" placeholder="Es: 8001120982476" style="flex:1">
       <button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="doOFF(document.getElementById('manual-bc').value.trim())">Cerca</button>
     </div>
   </div>
+
   <div id="scan-result" style="margin-top:12px"></div>
-  <div class="mactions">
+  <div class="mactions" style="margin-top:14px">
     <button class="btn btn-ghost btn-full" onclick="closeScanner()">Chiudi</button>
   </div>
 </div>
@@ -925,18 +925,43 @@ function savePantryItem(){
 }
 
 /* ══════════════════════════════════════
-   SCANNER — iOS Compatible
+   SCANNER — Safari iOS compatible
+   Approccio: input[type=file capture=environment]
+   Safari scatta la foto → la leggiamo con ZXing su canvas
 ══════════════════════════════════════ */
-let scanStream=null;
-let scanRAF=null;
+
+// Carica ZXing dinamicamente solo quando serve
+let zxingReady=false;
+let zxingReader=null;
+
+function loadZXing(cb){
+  if(zxingReady){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js';
+  s.onload=()=>{
+    // @zxing/browser espone window.ZXingBrowser
+    zxingReady=true;
+    cb();
+  };
+  s.onerror=()=>{
+    // fallback: prova la libreria alternativa
+    const s2=document.createElement('script');
+    s2.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js';
+    s2.onload=()=>{zxingReady=true;cb()};
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+}
 
 function openScanner(){
   scanTarget='new';
-  document.getElementById('scan-title').textContent='Scansiona prodotto';
+  document.getElementById('scan-title').textContent='Aggiungi prodotto';
   document.getElementById('scan-result').innerHTML='';
+  document.getElementById('scan-status').textContent='';
   document.getElementById('manual-bc').value='';
+  document.getElementById('scan-preview-wrap').style.display='none';
+  document.getElementById('scan-file-input').value='';
   openModal('m-scanner');
-  startCamera();
 }
 
 function startScan(pantryId){
@@ -944,95 +969,119 @@ function startScan(pantryId){
   const item=pantry.find(p=>p.id===pantryId);
   document.getElementById('scan-title').textContent=item?`Scansiona: ${item.name}`:'Scansiona prodotto';
   document.getElementById('scan-result').innerHTML='';
+  document.getElementById('scan-status').textContent='';
   document.getElementById('manual-bc').value='';
+  document.getElementById('scan-preview-wrap').style.display='none';
+  document.getElementById('scan-file-input').value='';
   openModal('m-scanner');
-  startCamera();
 }
 
-async function startCamera(){
-  scanActive=true;
+function handleScanPhoto(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
   const statusEl=document.getElementById('scan-status');
-  const videoEl=document.getElementById('scan-video');
-  statusEl.textContent='Avvio fotocamera…';
-  try{
-    scanStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
-    });
-    videoEl.srcObject=scanStream;
-    await new Promise(res=>{videoEl.onloadedmetadata=()=>res()});
-    await videoEl.play();
-    statusEl.textContent='Inquadra il codice a barre…';
-    tryDecode(videoEl,statusEl);
-  }catch(e){
-    scanActive=false;
-    if(e.name==='NotAllowedError')statusEl.textContent='⚠️ Permesso fotocamera negato.\nVai in Impostazioni → Safari → Fotocamera e autorizza il sito.';
-    else if(e.name==='NotFoundError')statusEl.textContent='Nessuna fotocamera trovata. Usa il campo barcode manuale.';
-    else statusEl.textContent='Impossibile avviare la fotocamera. Usa il campo barcode manuale.';
-  }
-}
+  statusEl.textContent='Elaboro la foto…';
 
-function tryDecode(videoEl,statusEl){
-  /* --- Strategia 1: BarcodeDetector nativo (iOS 17+, Chrome Android) --- */
-  if(typeof BarcodeDetector!=='undefined'){
-    statusEl.textContent='Inquadra il codice a barre…';
-    const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});
-    const tick=async()=>{
-      if(!scanActive)return;
-      try{
-        const codes=await det.detect(videoEl);
-        if(codes&&codes.length){onBarcode(codes[0].rawValue);return;}
-      }catch(e){}
-      if(scanActive)scanRAF=requestAnimationFrame(tick);
-    };
-    scanRAF=requestAnimationFrame(tick);
-    return;
-  }
+  // Mostra anteprima
+  const url=URL.createObjectURL(file);
+  const previewImg=document.getElementById('scan-preview-img');
+  previewImg.src=url;
+  document.getElementById('scan-preview-wrap').style.display='block';
 
-  /* --- Strategia 2: Canvas + pattern heuristic (fallback leggero) --- */
-  /* Usa un canvas per campionare il frame e cerca pattern numerici */
-  statusEl.textContent='Inquadra il codice a barre (mantieni fermo)…';
-  const canvas=document.createElement('canvas');
-  const ctx=canvas.getContext('2d');
-  let tries=0;
-
-  const tick=()=>{
-    if(!scanActive)return;
-    tries++;
-    if(videoEl.readyState>=2){
-      canvas.width=videoEl.videoWidth;
-      canvas.height=videoEl.videoHeight;
-      ctx.drawImage(videoEl,0,0);
-      /* Non possiamo fare vera lettura barcode senza libreria,
-         ma possiamo provare a usare jscanify-style o mostrare hint */
+  // Leggi barcode dall'immagine
+  const img=new Image();
+  img.onload=()=>{
+    // Prima prova: BarcodeDetector nativo (Chrome/Edge, non Safari)
+    if(typeof BarcodeDetector!=='undefined'){
+      const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+      det.detect(img).then(codes=>{
+        if(codes&&codes.length){
+          statusEl.textContent=`✓ Codice trovato: ${codes[0].rawValue}`;
+          URL.revokeObjectURL(url);
+          doOFF(codes[0].rawValue);
+        } else {
+          tryZXingOnImage(img,url,statusEl);
+        }
+      }).catch(()=>tryZXingOnImage(img,url,statusEl));
+      return;
     }
-    if(tries<300) scanRAF=requestAnimationFrame(tick);
-    else{
-      statusEl.textContent='Non riesco a leggere il codice. Prova a inserirlo manualmente.';
-    }
+    // Safari: vai diretto su ZXing
+    tryZXingOnImage(img,url,statusEl);
   };
-  scanRAF=requestAnimationFrame(tick);
+  img.onerror=()=>{statusEl.textContent='Errore nel caricare la foto.';};
+  img.src=url;
 }
 
-function onBarcode(bc){
-  scanActive=false;
-  if(scanRAF){cancelAnimationFrame(scanRAF);scanRAF=null;}
-  document.getElementById('scan-status').textContent=`✓ Codice: ${bc}`;
-  stopStream();
-  doOFF(bc);
+function tryZXingOnImage(img,url,statusEl){
+  // Disegna su canvas e prova con ZXing
+  const canvas=document.createElement('canvas');
+  // Scala l'immagine per velocizzare la decodifica (max 1000px)
+  const MAX=1000;
+  const scale=Math.min(1,MAX/Math.max(img.naturalWidth,img.naturalHeight));
+  canvas.width=Math.round(img.naturalWidth*scale);
+  canvas.height=Math.round(img.naturalHeight*scale);
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+
+  loadZXing(()=>{
+    try{
+      // Prova @zxing/browser
+      const ZB=window.ZXingBrowser;
+      if(ZB&&ZB.BrowserMultiFormatReader){
+        const reader=new ZB.BrowserMultiFormatReader();
+        reader.decodeFromCanvas(canvas).then(result=>{
+          const bc=result.getText();
+          statusEl.textContent=`✓ Codice trovato: ${bc}`;
+          URL.revokeObjectURL(url);
+          doOFF(bc);
+        }).catch(()=>tryZXingLibrary(canvas,url,statusEl));
+        return;
+      }
+      // Prova @zxing/library (vecchia API)
+      tryZXingLibrary(canvas,url,statusEl);
+    }catch(e){
+      tryZXingLibrary(canvas,url,statusEl);
+    }
+  });
+}
+
+function tryZXingLibrary(canvas,url,statusEl){
+  try{
+    const ZX=window.ZXing;
+    if(ZX){
+      const hints=new Map();
+      const formats=[
+        ZX.BarcodeFormat.EAN_13,ZX.BarcodeFormat.EAN_8,
+        ZX.BarcodeFormat.UPC_A,ZX.BarcodeFormat.CODE_128,
+      ];
+      hints.set(ZX.DecodeHintType.POSSIBLE_FORMATS,formats);
+      const reader=new ZX.MultiFormatReader();
+      reader.setHints(hints);
+      const ctx=canvas.getContext('2d');
+      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const luminance=new ZX.RGBLuminanceSource(imageData.data,canvas.width,canvas.height);
+      const binary=new ZX.BinaryBitmap(new ZX.HybridBinarizer(luminance));
+      const result=reader.decode(binary);
+      if(result){
+        const bc=result.getText();
+        statusEl.textContent=`✓ Codice trovato: ${bc}`;
+        URL.revokeObjectURL(url);
+        doOFF(bc);
+        return;
+      }
+    }
+  }catch(e){}
+  // Tutto fallito
+  statusEl.textContent='Non riesco a leggere il codice. Riprova avvicinando la fotocamera, oppure inseriscilo manualmente.';
+  URL.revokeObjectURL(url);
 }
 
 function stopStream(){
-  if(scanRAF){cancelAnimationFrame(scanRAF);scanRAF=null;}
-  try{
-    const v=document.getElementById('scan-video');
-    if(v&&v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null;}
-  }catch(e){}
-  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
+  // Non più necessario (niente stream video)
 }
 
 function closeScanner(){
   scanActive=false;
-  stopStream();
   closeModal('m-scanner');
   scanTarget=null;
 }
