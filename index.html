@@ -1277,28 +1277,80 @@ function startScanForItem(pantryId){
 }
 
 async function initScanner(){
+  const statusEl=document.getElementById('scan-status');
+  const videoEl=document.getElementById('scanner-video');
+
   try{
-    const ZXing=window.ZXing;
-    if(!ZXing){throw new Error('ZXing not loaded');}
-    codeReader=new ZXing.BrowserMultiFormatReader();
-    const devices=await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    if(!devices.length) throw new Error('Nessuna fotocamera');
-    const back=devices.find(d=>/back|rear|environment/i.test(d.label))||devices[devices.length-1];
-    await codeReader.decodeFromVideoDevice(back.deviceId,'scanner-video',async(res,err)=>{
-      if(res){
-        const bc=res.getText();
-        document.getElementById('scan-status').textContent=`Codice: ${bc}`;
-        stopScannerReader();
-        await doFetchOFF(bc);
+    // Passo 1: chiedi permesso fotocamera con getUserMedia direttamente
+    // Su mobile questo mostra il popup di permesso del browser
+    statusEl.textContent='In attesa del permesso fotocamera…';
+
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{ideal:'environment'}, // preferisce fotocamera posteriore
+        width:{ideal:1280},
+        height:{ideal:720}
       }
     });
+
+    // Collega lo stream al video element
+    videoEl.srcObject=stream;
+    await videoEl.play();
+    statusEl.textContent='Cerco codice a barre…';
+
+    // Passo 2: avvia ZXing sul video element già in riproduzione
+    const ZXing=window.ZXing;
+    if(!ZXing) throw new Error('ZXing non caricato');
+
+    codeReader=new ZXing.BrowserMultiFormatReader();
+
+    // Scan frame per frame con requestAnimationFrame
+    let scanning=true;
+    const scan=()=>{
+      if(!scanning||!codeReader) return;
+      try{
+        const result=codeReader.decodeFromVideoElement(videoEl);
+        if(result){
+          scanning=false;
+          const bc=result.getText();
+          statusEl.textContent=`Codice: ${bc}`;
+          stream.getTracks().forEach(t=>t.stop());
+          stopScannerReader();
+          doFetchOFF(bc);
+          return;
+        }
+      }catch(e){
+        // NotFoundException normale — nessun barcode in questo frame
+      }
+      requestAnimationFrame(scan);
+    };
+    requestAnimationFrame(scan);
+
   }catch(e){
-    document.getElementById('scan-status').textContent='Fotocamera non disponibile — inserisci barcode manualmente';
+    console.error('Scanner error:',e);
+    // Messaggio di errore specifico in base alla causa
+    if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
+      statusEl.textContent='Permesso fotocamera negato — inserisci il barcode manualmente';
+    } else if(e.name==='NotFoundError'||e.name==='DevicesNotFoundError'){
+      statusEl.textContent='Nessuna fotocamera trovata — inserisci il barcode manualmente';
+    } else if(e.name==='NotReadableError'){
+      statusEl.textContent='Fotocamera occupata da un\'altra app — chiudila e riprova';
+    } else {
+      statusEl.textContent='Fotocamera non disponibile — inserisci il barcode manualmente';
+    }
   }
 }
 
 function stopScannerReader(){
-  try{if(codeReader)codeReader.reset();}catch(e){}
+  try{
+    if(codeReader) codeReader.reset();
+    // Ferma anche eventuali stream residui sul video element
+    const v=document.getElementById('scanner-video');
+    if(v&&v.srcObject){
+      v.srcObject.getTracks().forEach(t=>t.stop());
+      v.srcObject=null;
+    }
+  }catch(e){}
   codeReader=null;
 }
 
