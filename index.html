@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -31,143 +30,139 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 
 /* ── APP SHELL ── */
 .app{display:grid;grid-template-rows:auto 1fr auto;height:100dvh;overflow:hidden}
-.topbar{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;background:var(–surf);border-bottom:1px solid var(–brd);padding-top:max(14px,env(safe-area-inset-top))}
-.topbar-title{font-family:var(–serif);font-size:19px;color:var(–tx)}
+.topbar{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--surf);border-bottom:1px solid var(--brd);padding-top:max(14px,env(safe-area-inset-top))}
+.topbar-title{font-family:var(--serif);font-size:19px;color:var(--tx)}
 .content{overflow-y:auto;-webkit-overflow-scrolling:touch}
 .page{display:none;padding:18px}.page.active{display:block}
-.bottomnav{display:flex;background:var(–surf);border-top:1px solid var(–brd);padding:5px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
-.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border:none;background:none;color:var(–mu);cursor:pointer;border-radius:8px;font-family:var(–sans);transition:color .15s}
-.bn.active{color:var(–tx)}.bn .bi{font-size:20px;line-height:1}.bn .bl{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.bottomnav{display:flex;background:var(--surf);border-top:1px solid var(--brd);padding:5px 8px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border:none;background:none;color:var(--mu);cursor:pointer;border-radius:8px;font-family:var(--sans);transition:color .15s}
+.bn.active{color:var(--tx)}.bn .bi{font-size:20px;line-height:1}.bn .bl{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
 
 /* ── CARDS ── */
-.card{background:var(–surf);border:1px solid var(–brd);border-radius:var(–r2);padding:18px;margin-bottom:12px}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r2);padding:18px;margin-bottom:12px}
 .card:last-child{margin-bottom:0}
-.card-title{font-family:var(–serif);font-size:15px;margin-bottom:14px}
+.card-title{font-family:var(--serif);font-size:15px;margin-bottom:14px}
 
 /* ── STAT GRID ── */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat-box{background:var(–s2);border-radius:var(–r);padding:13px 14px}
-.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(–mu);margin-bottom:5px}
-.stat-val{font-family:var(–serif);font-size:22px;color:var(–tx);line-height:1}
-.stat-sub{font-size:11px;color:var(–mu);margin-top:3px}
+.stat-box{background:var(--s2);border-radius:var(--r);padding:13px 14px}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:5px}
+.stat-val{font-family:var(--serif);font-size:22px;color:var(--tx);line-height:1}
+.stat-sub{font-size:11px;color:var(--mu);margin-top:3px}
 
 /* ── BADGES ── */
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
-.b-green{background:var(–gbg);color:var(–green)}.b-red{background:var(–rbg);color:var(–red)}
-.b-amb{background:var(–abg);color:var(–amb)}.b-blue{background:var(–bbg);color:var(–blue)}
-.b-teal{background:var(–tbg);color:var(–teal)}.b-mu{background:var(–s3);color:var(–mu)}
+.b-green{background:var(--gbg);color:var(--green)}.b-red{background:var(--rbg);color:var(--red)}
+.b-amb{background:var(--abg);color:var(--amb)}.b-blue{background:var(--bbg);color:var(--blue)}
+.b-teal{background:var(--tbg);color:var(--teal)}.b-mu{background:var(--s3);color:var(--mu)}
 .b-pink{background:#FDE8F0;color:#8B2252}
 
 /* ── BUTTONS ── */
-.btn{padding:10px 16px;border-radius:var(–r);border:none;font-family:var(–sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn-primary{background:var(–tx);color:#fff}.btn-primary:active{opacity:.8}
-.btn-ghost{background:var(–s2);color:var(–tx);border:1px solid var(–brd2)}.btn-ghost:active{background:var(–s3)}
-.btn-danger{background:var(–rbg);color:var(–red);border:1px solid transparent}
-.btn-green{background:var(–gbg);color:var(–green);border:1px solid transparent}
+.btn{padding:10px 16px;border-radius:var(--r);border:none;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--tx);color:#fff}.btn-primary:active{opacity:.8}
+.btn-ghost{background:var(--s2);color:var(--tx);border:1px solid var(--brd2)}.btn-ghost:active{background:var(--s3)}
+.btn-danger{background:var(--rbg);color:var(--red);border:1px solid transparent}
+.btn-green{background:var(--gbg);color:var(--green);border:1px solid transparent}
 .btn-full{width:100%}
 .btn-sm{padding:6px 12px;font-size:12px}
 .btn-xs{padding:3px 9px;font-size:11px;border-radius:7px}
 
 /* ── INPUTS ── */
-input,select,textarea{background:var(–s2);border:1px solid var(–brd2);border-radius:var(–r);padding:10px 12px;color:var(–tx);font-family:var(–sans);font-size:14px;width:100%;outline:none;transition:border .15s;-webkit-appearance:none}
-input:focus,select:focus{border-color:var(–tx)}
-input::placeholder{color:var(–hi)}
+input,select,textarea{background:var(--s2);border:1px solid var(--brd2);border-radius:var(--r);padding:10px 12px;color:var(--tx);font-family:var(--sans);font-size:14px;width:100%;outline:none;transition:border .15s;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--tx)}
+input::placeholder{color:var(--hi)}
 .form-row{margin-bottom:11px}
-.form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(–mu);margin-bottom:5px;display:block}
+.form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:5px;display:block}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 /* ── PILLS ── */
 .pill-row{display:flex;gap:5px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
-.pill{padding:5px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(–brd);background:none;color:var(–mu);font-family:var(–sans);white-space:nowrap;flex-shrink:0;transition:all .12s}
-.pill.on{background:var(–tx);color:#fff;border-color:var(–tx);font-weight:500}
+.pill{padding:5px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--brd);background:none;color:var(--mu);font-family:var(--sans);white-space:nowrap;flex-shrink:0;transition:all .12s}
+.pill.on{background:var(--tx);color:#fff;border-color:var(--tx);font-weight:500}
 
 /* ── TABLE ── */
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{text-align:left;padding:7px 8px;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(–hi);border-bottom:1px solid var(–brd);white-space:nowrap}
-.tbl td{padding:9px 8px;border-bottom:1px solid var(–brd);vertical-align:middle}
+.tbl th{text-align:left;padding:7px 8px;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--hi);border-bottom:1px solid var(--brd);white-space:nowrap}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--brd);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:var(–s2)}
+.tbl tr:hover td{background:var(--s2)}
 
 /* ── RECEIPT BUTTONS ── */
-.receipt-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(–surf);border:1px solid var(–brd);border-radius:var(–r);margin-bottom:8px;cursor:pointer;transition:background .12s;font-family:var(–sans)}
-.receipt-btn:active{background:var(–s2)}
+.receipt-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:background .12s;font-family:var(--sans)}
+.receipt-btn:active{background:var(--s2)}
 .receipt-btn-left{text-align:left}
-.receipt-btn-date{font-size:13px;font-weight:500;color:var(–tx)}
-.receipt-btn-meta{font-size:11px;color:var(–mu);margin-top:2px}
-.receipt-btn-amount{font-family:var(–serif);font-size:18px;color:var(–tx);flex-shrink:0;margin-left:12px}
+.receipt-btn-date{font-size:13px;font-weight:500;color:var(--tx)}
+.receipt-btn-meta{font-size:11px;color:var(--mu);margin-top:2px}
+.receipt-btn-amount{font-family:var(--serif);font-size:18px;color:var(--tx);flex-shrink:0;margin-left:12px}
 
 /* ── PANTRY ── */
-.pantry-item{background:var(–surf);border:1px solid var(–brd);border-radius:var(–r);padding:12px;margin-bottom:8px}
+.pantry-item{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:12px;margin-bottom:8px}
 .pi-row{display:flex;align-items:center;gap:10px}
-.pi-icon{width:40px;height:40px;border-radius:8px;background:var(–s2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.pi-icon{width:40px;height:40px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
 .pi-icon img{width:100%;height:100%;object-fit:contain}
 .pi-info{flex:1;min-width:0}
 .pi-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pi-meta{font-size:11px;color:var(–mu);margin-top:2px}
+.pi-meta{font-size:11px;color:var(--mu);margin-top:2px}
 .pi-exp{font-size:11px;font-weight:500;margin-top:3px}
 .pi-actions{display:flex;gap:5px;flex-shrink:0}
-.exp-ok{color:var(–teal)}.exp-soon{color:var(–amb)}.exp-out{color:var(–red)}
-.pi-nutri{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(–brd);border-radius:8px;overflow:hidden;margin-top:10px}
-.pi-nutri-cell{background:var(–s2);padding:7px;text-align:center}
-.pi-nutri-cell .nv{font-family:var(–serif);font-size:13px}
-.pi-nutri-cell .nl{font-size:9px;color:var(–mu);text-transform:uppercase;margin-top:1px}
+.exp-ok{color:var(--teal)}.exp-soon{color:var(--amb)}.exp-out{color:var(--red)}
+.pi-nutri{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--brd);border-radius:8px;overflow:hidden;margin-top:10px}
+.pi-nutri-cell{background:var(--s2);padding:7px;text-align:center}
+.pi-nutri-cell .nv{font-family:var(--serif);font-size:13px}
+.pi-nutri-cell .nl{font-size:9px;color:var(--mu);text-transform:uppercase;margin-top:1px}
 
 /* scanner: niente video, solo foto */
 
 /* ── MODAL ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:var(–surf);border-radius:20px 20px 0 0;padding:20px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:92dvh;overflow-y:auto}
-.mhandle{width:36px;height:4px;background:var(–brd);border-radius:2px;margin:0 auto 18px}
-.mtitle{font-family:var(–serif);font-size:19px;margin-bottom:4px}
-.msub{font-size:12px;color:var(–mu);margin-bottom:18px}
+.modal{background:var(--surf);border-radius:20px 20px 0 0;padding:20px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:92dvh;overflow-y:auto}
+.mhandle{width:36px;height:4px;background:var(--brd);border-radius:2px;margin:0 auto 18px}
+.mtitle{font-family:var(--serif);font-size:19px;margin-bottom:4px}
+.msub{font-size:12px;color:var(--mu);margin-bottom:18px}
 .mactions{display:flex;gap:8px;margin-top:16px}
-.divider{height:1px;background:var(–brd);margin:14px 0}
+.divider{height:1px;background:var(--brd);margin:14px 0}
 
 /* ── NUTRI score ── */
 .nscore-wrap{display:flex;align-items:center;gap:20px}
 .nscore-ring{position:relative;width:110px;height:110px;flex-shrink:0}
 .nscore-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.nscore-num{font-family:var(–serif);font-size:28px;line-height:1}
+.nscore-num{font-family:var(--serif);font-size:28px;line-height:1}
 .nb-row{margin-bottom:9px}
 .nb-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
-.nb-label span:first-child{color:var(–tx);font-weight:500}
-.nb-label span:last-child{color:var(–mu)}
-.nb-bg{height:4px;background:var(–s2);border-radius:2px;overflow:hidden}
+.nb-label span:first-child{color:var(--tx);font-weight:500}
+.nb-label span:last-child{color:var(--mu)}
+.nb-bg{height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
 .nb-fill{height:100%;border-radius:2px;transition:width .6s}
 
 /* ── MISC ── */
-.empty{text-align:center;padding:40px 16px;color:var(–hi)}
+.empty{text-align:center;padding:40px 16px;color:var(--hi)}
 .empty-icon{font-size:36px;margin-bottom:8px}
-.empty-text{font-size:14px;color:var(–mu);margin-bottom:4px}
+.empty-text{font-size:14px;color:var(--mu);margin-bottom:4px}
 .empty-hint{font-size:12px}
 .row-bet{display:flex;align-items:center;justify-content:space-between}
-.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(–tx);color:#fff;border-radius:var(–r);padding:9px 16px;font-size:13px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;border-radius:var(--r);padding:9px 16px;font-size:13px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 .add-row{display:flex;gap:8px;margin-bottom:16px}
-.section-title{font-family:var(–serif);font-size:22px;margin-bottom:3px}
-.off-card{background:var(–s2);border-radius:var(–r);padding:12px;display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.section-title{font-family:var(--serif);font-size:22px;margin-bottom:3px}
+.off-card{background:var(--s2);border-radius:var(--r);padding:12px;display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
 .off-img{width:50px;height:50px;object-fit:contain;border-radius:6px;background:#fff;flex-shrink:0}
 ::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-thumb{background:var(–brd2);border-radius:2px}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
 </style>
-
 </head>
 <body>
 <div class="app">
 
 <!-- TOPBAR -->
-
 <div class="topbar">
   <div class="topbar-title" id="page-title">La mia Spesa</div>
 </div>
 
 <!-- CONTENT -->
-
 <div class="content">
 
 <!-- ════ PAGE SPESA ════ -->
-
 <div class="page active" id="pg-spesa">
   <div class="pill-row">
     <button class="pill on" onclick="showSV('riepilogo',this)">Riepilogo</button>
@@ -175,7 +170,6 @@ input::placeholder{color:var(–hi)}
   </div>
 
   <!-- RIEPILOGO -->
-
   <div id="sv-riepilogo">
     <div class="stat-grid" id="stat-top"></div>
     <button class="btn btn-primary btn-full" style="margin-bottom:14px;background:#1A1714;color:#ffffff;font-size:15px;font-weight:500" onclick="openModal('m-receipt')">＋ Aggiungi scontrino</button>
@@ -183,7 +177,6 @@ input::placeholder{color:var(–hi)}
   </div>
 
   <!-- ANALISI -->
-
   <div id="sv-analisi" style="display:none">
     <div class="pill-row" id="analisi-pills"></div>
     <div class="card" style="margin-bottom:12px">
@@ -203,7 +196,6 @@ input::placeholder{color:var(–hi)}
 </div>
 
 <!-- ════ PAGE DISPENSA ════ -->
-
 <div class="page" id="pg-dispensa">
   <div class="row-bet" style="margin-bottom:14px">
     <div class="section-title">Dispensa</div>
@@ -211,7 +203,6 @@ input::placeholder{color:var(–hi)}
   </div>
 
   <!-- ADD ROW: sempre in cima -->
-
   <div class="add-row">
     <button class="btn btn-primary" style="flex:1" onclick="openScanner()">📷 Fotocamera</button>
     <button class="btn btn-ghost" style="flex:1" onclick="openManualAdd()">✏️ Manualmente</button>
@@ -228,7 +219,6 @@ input::placeholder{color:var(–hi)}
 </div>
 
 <!-- ════ PAGE QUALITÀ ════ -->
-
 <div class="page" id="pg-qualita">
   <div class="section-title" style="margin-bottom:3px">Qualità</div>
   <div style="font-size:12px;color:var(--mu);margin-bottom:18px">Profilo nutrizionale dei tuoi acquisti</div>
@@ -263,7 +253,6 @@ input::placeholder{color:var(–hi)}
 </div><!-- /content -->
 
 <!-- BOTTOM NAV -->
-
 <div class="bottomnav">
   <button class="bn active" onclick="goPage('spesa',this)"><span class="bi">🛒</span><span class="bl">Spesa</span></button>
   <button class="bn" onclick="goPage('dispensa',this)"><span class="bi">🗄</span><span class="bl">Dispensa</span></button>
@@ -274,7 +263,6 @@ input::placeholder{color:var(–hi)}
 <div class="toast" id="toast"></div>
 
 <!-- ═══ MODAL: DETTAGLIO SCONTRINO ═══ -->
-
 <div class="modal-bg" id="m-receipt-detail">
 <div class="modal">
   <div class="mhandle"></div>
@@ -289,7 +277,6 @@ input::placeholder{color:var(–hi)}
 </div>
 
 <!-- ═══ MODAL: NUOVO SCONTRINO ═══ -->
-
 <div class="modal-bg" id="m-receipt">
 <div class="modal">
   <div class="mhandle"></div>
@@ -337,7 +324,6 @@ input::placeholder{color:var(–hi)}
 </div>
 
 <!-- ═══ MODAL: SCANNER ═══ -->
-
 <div class="modal-bg" id="m-scanner">
 <div class="modal">
   <div class="mhandle"></div>
@@ -345,13 +331,11 @@ input::placeholder{color:var(–hi)}
   <div class="msub" id="scan-sub">Scatta una foto al codice a barre</div>
 
   <!-- Preview foto scattata -->
-
   <div id="scan-preview-wrap" style="display:none;margin-bottom:12px;text-align:center">
     <img id="scan-preview-img" style="max-width:100%;max-height:200px;border-radius:var(--r);border:1px solid var(--brd)" alt="">
   </div>
 
   <!-- Bottone principale: apre fotocamera iOS -->
-
   <input type="file" id="scan-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleScanPhoto(this)">
 
   <button class="btn btn-primary btn-full" style="margin-bottom:10px;font-size:15px" onclick="document.getElementById('scan-file-input').click()">
@@ -361,7 +345,6 @@ input::placeholder{color:var(–hi)}
   <div id="scan-status" style="text-align:center;font-size:12px;color:var(--mu);min-height:20px;margin-bottom:10px"></div>
 
   <!-- Barcode manuale -->
-
   <div style="border-top:1px solid var(--brd);padding-top:12px">
     <div style="font-size:11px;color:var(--mu);text-align:center;margin-bottom:8px">oppure inserisci il barcode a mano</div>
     <div style="display:flex;gap:8px">
@@ -378,7 +361,6 @@ input::placeholder{color:var(–hi)}
 </div>
 
 <!-- ═══ MODAL: AGGIUNGI/MODIFICA DISPENSA ═══ -->
-
 <div class="modal-bg" id="m-pantry">
 <div class="modal">
   <div class="mhandle"></div>
@@ -1237,6 +1219,5 @@ Chart.defaults.color="#7A746C";
 document.getElementById('r-date').value=new Date().toISOString().slice(0,10);
 renderSpesa();
 </script>
-
 </body>
 </html>
