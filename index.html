@@ -178,7 +178,7 @@ input::placeholder{color:var(–hi)}
 
   <div id="sv-riepilogo">
     <div class="stat-grid" id="stat-top"></div>
-    <button class="btn btn-primary btn-full" style="margin-bottom:14px" onclick="openModal('m-receipt')">＋ Aggiungi scontrino</button>
+    <button class="btn btn-primary btn-full" style="margin-bottom:14px;background:#1A1714;color:#ffffff;font-size:15px;font-weight:500" onclick="openModal('m-receipt')">＋ Aggiungi scontrino</button>
     <div id="receipt-buttons"></div>
   </div>
 
@@ -581,19 +581,7 @@ function catTotals(){
   const m={};receipts.forEach(r=>r.items.forEach(i=>{m[i.macro]=(m[i.macro]||0)+(i.price-(i.disc||0))}));return m;
 }
 
-/* giorni nel mese corrente trascorsi */
-function daysInCurrentMonth(){
-  const now=new Date();
-  const start=new Date(now.getFullYear(),now.getMonth(),1);
-  return Math.ceil((now-start)/86400000)+1;
-}
-/* giorni nel trimestre corrente trascorsi */
-function daysInCurrentQuarter(){
-  const now=new Date();
-  const q=Math.floor(now.getMonth()/3);
-  const start=new Date(now.getFullYear(),q*3,1);
-  return Math.ceil((now-start)/86400000)+1;
-}
+/* calcoli giorni spostati in renderRiepilogo */
 
 /* ══════════════════════════════════════
    NAVIGATION
@@ -641,24 +629,44 @@ function renderSpesa(){
 function renderRiepilogo(){
   const mt=monthlyTotals();
   const months=Object.keys(mt).sort();
-  const curM=months[months.length-1]||'';
-  const curTotal=mt[curM]||0;
   const total=Object.values(mt).reduce((a,b)=>a+b,0);
   const avgR=receipts.length?total/receipts.length:0;
-  const dM=daysInCurrentMonth();
-  const dQ=daysInCurrentQuarter();
 
-  // spesa nel mese corrente
-  const spesaMese=receipts.filter(r=>r.date.slice(0,7)===new Date().toISOString().slice(0,7)).reduce((a,r)=>a+r.total,0);
-  // spesa trimestre corrente
-  const now=new Date();const qStart=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1);
-  const spesaTrim=receipts.filter(r=>new Date(r.date+'T00:00:00')>=qStart).reduce((a,r)=>a+r.total,0);
+  // Usa il mese più recente con scontrini (non il mese di calendario)
+  const lastMonth=months[months.length-1]||'';
+  const spesaMese=mt[lastMonth]||0;
+  const receiptsLastMonth=receipts.filter(r=>r.date.slice(0,7)===lastMonth);
+
+  // Giorni coperti nel mese più recente (dal primo al giorno dell'ultimo scontrino)
+  let dM=1,dQ=1;
+  if(lastMonth){
+    const datesInMonth=receiptsLastMonth.map(r=>new Date(r.date+'T00:00:00'));
+    const lastDay=new Date(Math.max(...datesInMonth));
+    const firstOfMonth=new Date(lastMonth+'-01T00:00:00');
+    dM=Math.max(1,Math.ceil((lastDay-firstOfMonth)/86400000)+1);
+  }
+
+  // Spesa trimestre: ultimi 3 mesi di dati
+  const trim3months=months.slice(-3);
+  const spesaTrim=trim3months.reduce((a,m)=>a+(mt[m]||0),0);
+  // Giorni coperti nel trimestre
+  if(trim3months.length){
+    const firstM=trim3months[0];
+    const allDates=receipts.filter(r=>trim3months.includes(r.date.slice(0,7))).map(r=>new Date(r.date+'T00:00:00'));
+    if(allDates.length){
+      const minD=new Date(Math.min(...allDates));
+      const maxD=new Date(Math.max(...allDates));
+      dQ=Math.max(1,Math.ceil((maxD-minD)/86400000)+1);
+    }
+  }
+
+  const mLabel=lastMonth?new Date(lastMonth+'-01T00:00:00').toLocaleDateString('it-IT',{month:'long',year:'numeric'}):'—';
 
   document.getElementById('stat-top').innerHTML=`
     <div class="stat-box">
-      <div class="stat-label">Speso questo mese</div>
+      <div class="stat-label">Speso (${mLabel})</div>
       <div class="stat-val">€${fmt(spesaMese)}</div>
-      <div class="stat-sub">${receipts.filter(r=>r.date.slice(0,7)===new Date().toISOString().slice(0,7)).length} scontrini</div>
+      <div class="stat-sub">${receiptsLastMonth.length} scontrin${receiptsLastMonth.length===1?'o':'i'}</div>
     </div>
     <div class="stat-box">
       <div class="stat-label">Media per scontrino</div>
@@ -673,7 +681,7 @@ function renderRiepilogo(){
     <div class="stat-box">
       <div class="stat-label">Media giornaliera trim.</div>
       <div class="stat-val">€${fmt(spesaTrim/dQ)}</div>
-      <div class="stat-sub">su ${dQ} giorni</div>
+      <div class="stat-sub">${trim3months.length} mes${trim3months.length===1?'e':'i'} · ${dQ} giorni</div>
     </div>`;
 
   const sorted=[...receipts].sort((a,b)=>b.date.localeCompare(a.date));
