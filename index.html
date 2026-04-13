@@ -331,18 +331,26 @@ input::placeholder{color:var(--hi)}
   <div class="msub" id="scan-sub">Scatta una foto al codice a barre</div>
 
   <!-- Preview foto scattata -->
-  <div id="scan-preview-wrap" style="display:none;margin-bottom:12px;text-align:center">
-    <img id="scan-preview-img" style="max-width:100%;max-height:200px;border-radius:var(--r);border:1px solid var(--brd)" alt="">
+  <div id="scan-preview-wrap" style="display:none;margin-bottom:10px;text-align:center">
+    <img id="scan-preview-img" style="max-width:100%;max-height:180px;border-radius:var(--r);border:1px solid var(--brd)" alt="">
+    <!-- Appare dopo la foto con il numero letto sotto il barcode -->
+    <div id="scan-manual-hint" style="display:none;margin-top:10px;background:var(--s2);border-radius:var(--r);padding:10px">
+      <div style="font-size:11px;color:var(--mu);margin-bottom:6px">Vedi il numero sotto il barcode? Inseriscilo qui:</div>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="quick-bc" placeholder="Es: 8001120916822" style="flex:1;font-size:14px">
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="doOFF(document.getElementById('quick-bc').value.trim())">Cerca</button>
+      </div>
+    </div>
   </div>
 
   <!-- Bottone principale: apre fotocamera iOS -->
   <input type="file" id="scan-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleScanPhoto(this)">
 
-  <button class="btn btn-primary btn-full" style="margin-bottom:10px;font-size:15px" onclick="document.getElementById('scan-file-input').click()">
+  <button class="btn btn-primary btn-full" style="margin-bottom:10px;font-size:15px;background:#1A1714;color:#fff" onclick="document.getElementById('scan-file-input').click()">
     📷 Scatta foto al codice a barre
   </button>
 
-  <div id="scan-status" style="text-align:center;font-size:12px;color:var(--mu);min-height:20px;margin-bottom:10px"></div>
+  <div id="scan-status" style="text-align:center;font-size:12px;color:var(--mu);min-height:20px;margin-bottom:10px;white-space:pre-line"></div>
 
   <!-- Barcode manuale -->
   <div style="border-top:1px solid var(--brd);padding-top:12px">
@@ -953,6 +961,7 @@ function _openScanModal(title){
   document.getElementById('scan-status').textContent='';
   document.getElementById('manual-bc').value='';
   document.getElementById('scan-preview-wrap').style.display='none';
+  document.getElementById('scan-manual-hint').style.display='none';
   document.getElementById('scan-file-input').value='';
   openModal('m-scanner');
 }
@@ -964,60 +973,94 @@ function handleScanPhoto(input){
   statusEl.textContent='Elaboro la foto…';
 
   const url=URL.createObjectURL(file);
-  const previewImg=document.getElementById('scan-preview-img');
-  previewImg.src=url;
+  document.getElementById('scan-preview-img').src=url;
   document.getElementById('scan-preview-wrap').style.display='block';
 
-  // Usa html5-qrcode per leggere l'immagine
   loadHtml5QR(()=>{
+    // Tentativo 1: file originale
     Html5Qrcode.scanFile(file, true)
-      .then(bc=>{
-        statusEl.textContent=`✓ Codice trovato: ${bc}`;
-        URL.revokeObjectURL(url);
-        doOFF(bc);
-      })
+      .then(bc=>onBarcodeFound(bc, url, statusEl))
       .catch(()=>{
-        // Fallback: prova con immagine ridimensionata
-        resizeAndRetry(file, url, statusEl);
+        statusEl.textContent='Primo tentativo fallito, provo a elaborare l\'immagine…';
+        // Tentativo 2: immagine pre-processata (contrasto aumentato, crop centrale)
+        preprocessAndRetry(file, url, statusEl);
       });
   });
 }
 
-function resizeAndRetry(file, url, statusEl){
+function preprocessAndRetry(file, url, statusEl){
   const img=new Image();
   img.onload=()=>{
-    // Prova diverse dimensioni di crop (il barcode potrebbe essere in un angolo)
-    const canvas=document.createElement('canvas');
-    // Prima prova full size
-    canvas.width=img.naturalWidth;
-    canvas.height=img.naturalHeight;
-    canvas.getContext('2d').drawImage(img,0,0);
-    canvas.toBlob(blob=>{
-      Html5Qrcode.scanFile(new File([blob],'scan.jpg',{type:'image/jpeg'}), true)
-        .then(bc=>{
-          statusEl.textContent=`✓ Codice trovato: ${bc}`;
-          URL.revokeObjectURL(url);
-          doOFF(bc);
-        })
-        .catch(()=>{
-          statusEl.textContent='Non riesco a leggere il codice. Prova a:\n1. Avvicinarti di più\n2. Assicurarti che il codice sia ben illuminato\n3. Inserirlo manualmente';
-          URL.revokeObjectURL(url);
-        });
-    },'image/jpeg',0.95);
+    const W=img.naturalWidth, H=img.naturalHeight;
+
+    // Tenta più versioni: full, crop basso (i barcode sono spesso in basso), crop centrale
+    const crops=[
+      {sx:0,     sy:0,       sw:W,      sh:H,      label:'full'},
+      {sx:0,     sy:H*0.5,   sw:W,      sh:H*0.5,  label:'metà inferiore'},
+      {sx:W*0.1, sy:H*0.6,   sw:W*0.8,  sh:H*0.4,  label:'crop barcode'},
+      {sx:0,     sy:H*0.7,   sw:W,      sh:H*0.3,  label:'terzo inferiore'},
+    ];
+
+    let attempt=0;
+    function tryNext(){
+      if(attempt>=crops.length){
+        // Tutti i tentativi falliti
+        statusEl.textContent='Non riesco a leggere il codice automaticamente.';
+        document.getElementById('scan-manual-hint').style.display='block';
+        URL.revokeObjectURL(url);
+        return;
+      }
+      const c=crops[attempt++];
+      const canvas=document.createElement('canvas');
+      // Scala a max 800px per performance
+      const scale=Math.min(1, 800/Math.max(c.sw,c.sh));
+      canvas.width=Math.round(c.sw*scale);
+      canvas.height=Math.round(c.sh*scale);
+      const ctx=canvas.getContext('2d');
+
+      // Aumenta contrasto
+      ctx.filter='contrast(1.4) brightness(1.1)';
+      ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob=>{
+        Html5Qrcode.scanFile(new File([blob],`scan_${attempt}.jpg`,{type:'image/jpeg'}), true)
+          .then(bc=>onBarcodeFound(bc, url, statusEl))
+          .catch(()=>{
+            statusEl.textContent=`Provo crop ${attempt}/${crops.length}…`;
+            tryNext();
+          });
+      },'image/jpeg',0.92);
+    }
+    tryNext();
+  };
+  img.onerror=()=>{
+    document.getElementById('scan-status').textContent='Errore nel caricare la foto.';
+    document.getElementById('scan-manual-hint').style.display='block';
   };
   img.src=url;
+}
+
+function onBarcodeFound(bc, url, statusEl){
+  statusEl.textContent=`✓ Codice trovato: ${bc}`;
+  document.getElementById('scan-manual-hint').style.display='none';
+  if(url) URL.revokeObjectURL(url);
+  doOFF(bc);
 }
 
 function loadHtml5QR(cb){
   if(window.Html5Qrcode){cb();return;}
   const s=document.createElement('script');
-  s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+  // jsdelivr è più affidabile di unpkg su Safari
+  s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.onload=cb;
   s.onerror=()=>{
-    // fallback jsdelivr
     const s2=document.createElement('script');
-    s2.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+    s2.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
     s2.onload=cb;
+    s2.onerror=()=>{
+      document.getElementById('scan-status').textContent='Libreria non disponibile. Usa il barcode manuale.';
+      document.getElementById('scan-manual-hint').style.display='block';
+    };
     document.head.appendChild(s2);
   };
   document.head.appendChild(s);
