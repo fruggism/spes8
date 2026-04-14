@@ -993,8 +993,15 @@ async function handleScanPhoto(input){
     // 2) Fallback html5-qrcode.
     loadHtml5QR(()=>{
       statusEl.textContent='Analizzo con metodo alternativo…';
-      Html5Qrcode.scanFile(file, true)
-        .then(bc=>onBarcodeFound(bc, url, statusEl))
+      withTimeout(Html5Qrcode.scanFile(file, true), 4000)
+        .then(bc=>{
+          if(bc){
+            onBarcodeFound(bc, url, statusEl);
+            return;
+          }
+          statusEl.textContent='Metodo alternativo bloccato o senza risultato. Provo a elaborare l\'immagine…';
+          preprocessAndRetry(file, url, statusEl);
+        })
         .catch(()=>{
           statusEl.textContent='Primo tentativo fallito, provo a elaborare l\'immagine…';
           preprocessAndRetry(file, url, statusEl);
@@ -1110,10 +1117,16 @@ function preprocessAndRetry(file, url, statusEl){
           document.getElementById('scan-manual-hint').style.display='block';
           return;
         }
-        Html5Qrcode.scanFile(new File([blob],`scan_${attempt}.jpg`,{type:'image/jpeg'}), true)
-          .then(bc=>onBarcodeFound(bc, url, statusEl))
+        statusEl.textContent=`Provo crop ${attempt}/${crops.length}…`;
+        withTimeout(Html5Qrcode.scanFile(new File([blob],`scan_${attempt}.jpg`,{type:'image/jpeg'}), true), 3500)
+          .then(bc=>{
+            if(bc){
+              onBarcodeFound(bc, url, statusEl);
+              return;
+            }
+            tryNext();
+          })
           .catch(()=>{
-            statusEl.textContent=`Provo crop ${attempt}/${crops.length}…`;
             tryNext();
           });
       },'image/jpeg',0.92);
@@ -1146,14 +1159,21 @@ function onBarcodeFound(bc, url, statusEl){
 
 function loadHtml5QR(cb){
   if(window.Html5Qrcode){cb();return;}
+  const statusEl=document.getElementById('scan-status');
   const s=document.createElement('script');
   // jsdelivr è più affidabile di unpkg su Safari
   s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
-  s.onload=cb;
+  s.onload=()=>{
+    statusEl.textContent='Libreria caricata. Analisi in corso…';
+    cb();
+  };
   s.onerror=()=>{
     const s2=document.createElement('script');
     s2.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-    s2.onload=cb;
+    s2.onload=()=>{
+      statusEl.textContent='Libreria caricata dal backup. Analisi in corso…';
+      cb();
+    };
     s2.onerror=()=>{
       document.getElementById('scan-status').textContent='Libreria non disponibile. Usa il barcode manuale.';
       document.getElementById('scan-manual-hint').style.display='block';
