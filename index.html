@@ -993,7 +993,7 @@ async function handleScanPhoto(input){
     // 2) Fallback html5-qrcode.
     loadHtml5QR(()=>{
       statusEl.textContent='Analizzo con metodo alternativo…';
-      withTimeout(Html5Qrcode.scanFile(file, true), 4000)
+      withTimeout(scanFileWithHtml5QR(file), 4000)
         .then(bc=>{
           if(bc){
             onBarcodeFound(bc, url, statusEl);
@@ -1002,8 +1002,8 @@ async function handleScanPhoto(input){
           statusEl.textContent='Metodo alternativo bloccato o senza risultato. Provo a elaborare l\'immagine…';
           preprocessAndRetry(file, url, statusEl);
         })
-        .catch(()=>{
-          statusEl.textContent='Primo tentativo fallito, provo a elaborare l\'immagine…';
+        .catch((e)=>{
+          statusEl.textContent=`Metodo alternativo non disponibile: ${e?.message||'errore sconosciuto'}. Provo a elaborare l'immagine…`;
           preprocessAndRetry(file, url, statusEl);
         });
     });
@@ -1118,7 +1118,7 @@ function preprocessAndRetry(file, url, statusEl){
           return;
         }
         statusEl.textContent=`Provo crop ${attempt}/${crops.length}…`;
-        withTimeout(Html5Qrcode.scanFile(new File([blob],`scan_${attempt}.jpg`,{type:'image/jpeg'}), true), 3500)
+        withTimeout(scanFileWithHtml5QR(new File([blob],`scan_${attempt}.jpg`,{type:'image/jpeg'})), 3500)
           .then(bc=>{
             if(bc){
               onBarcodeFound(bc, url, statusEl);
@@ -1155,6 +1155,31 @@ function onBarcodeFound(bc, url, statusEl){
   document.getElementById('scan-manual-hint').style.display='none';
   if(url) URL.revokeObjectURL(url);
   doOFF(bc);
+}
+
+async function scanFileWithHtml5QR(file){
+  if(!window.Html5Qrcode) throw new Error('html5-qrcode non caricata');
+
+  if(typeof Html5Qrcode.scanFile==='function'){
+    return Html5Qrcode.scanFile(file, true);
+  }
+
+  const hostId='html5qr-file-reader';
+  let host=document.getElementById(hostId);
+  if(!host){
+    host=document.createElement('div');
+    host.id=hostId;
+    host.style.cssText='position:fixed;left:-99999px;top:-99999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+    document.body.appendChild(host);
+  }
+
+  if(!html5QrScanner){
+    html5QrScanner=new Html5Qrcode(hostId);
+  }
+
+  const result=await html5QrScanner.scanFile(file, true);
+  html5QrScanner.clear?.().catch?.(()=>{});
+  return result;
 }
 
 function loadHtml5QR(cb){
